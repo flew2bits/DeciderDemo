@@ -1,0 +1,129 @@
+@page
+@model DeciderDemo.Pages.Index
+
+@{
+}
+<form method="post" asp-page-handler="AddWorkshopToConference">
+    <div class="modal fade" id="AddWorkshopToConferenceModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5>Add a Workshop</h5>
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="workshopConferenceId" name="workshopConferenceId"/>
+                    <div class="mb-3">
+                        <label class="form-label" for="workshopName">Workshop Name</label>
+                        <input type="text" class="form-control" id="workshopName" name="workshopName"/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="workshopId">Workshop Id</label>
+                        <input type="text" class="form-control" id="workshopId" name="workshopId"/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="workshopDate">Date</label>
+                        <input type="date" class="form-control" id="workshopDate" name="workshopDate"/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="workshopStart">Start Time</label>
+                        <input type="time" class="form-control" id="workshopStart" name="workshopStart"/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="workshopEnd">End Time</label>
+                        <input type="time" class="form-control" id="workshopEnd" name="workshopEnd"/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="workshopLocation">Location</label>
+                        <input type="text" class="form-control" id="workshopLocation" name="workshopLocation"/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="workshopFacilitator">Facilitator</label>
+                        <input type="text" class="form-control" id="workshopFacilitator" name="workshopFacilitator"/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="workshopCapacity">Capacity</label>
+                        <input type="text" class="form-control" id="workshopCapacity" name="workshopCapacity"/>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Add</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<form method="post" asp-page-handler="AddConference">
+<div class="modal fade" id="AddConferenceModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5>Add a Conference</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label" for="conferenceName">Conference Name</label>
+                    <input type="text" class="form-control" id="conferenceName" name="conferenceName"/>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="conferenceStart">Start Date</label>
+                    <input type="date" class="form-control" id="conferenceStart" name="conferenceStart"/>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="conferenceEnd">End Date</label>
+                    <input type="date" class="form-control" id="conferenceEnd" name="conferenceEnd"/>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Add</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+</form>
+
+@if (Model.Conferences.Any())
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Conference Name</th>
+            <th>Dates</th>
+            <th>Workshop #</th>
+            <td></td>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var conference in Model.Conferences)
+        {
+            <tr data-conference-id="@conference.ConferenceId">
+                <td>@conference.ConferenceName</td>
+                <td>@conference.StartDate.ToShortDateString() - @conference.EndDate.ToShortDateString()</td>
+                <td>@conference.Workshops.Length</td>
+                <td><button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#AddWorkshopToConferenceModal">Add Workshop</button></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="row"><span>There are no conferences. <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#AddConferenceModal">Add</button></span></div>
+}
+
+@section scripts {
+    <script>
+    $(() => {
+        $('#AddWorkshopToConferenceModal').on('show.bs.modal', evt => {
+            let $related = $(evt.relatedTarget);
+            let $tr = $related.closest('tr');
+            let conferenceId = $tr.data('conferenceId');
+            $('#workshopConferenceId').val(conferenceId);
+        })
+    });
+    </script>
+}
