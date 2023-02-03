@@ -1,5 +1,7 @@
 @page
+@using System.Text.Json
 @model DeciderDemo.Pages.Index
+
 
 @{
 }
@@ -88,6 +90,8 @@
 
 @if (Model.Conferences.Any())
 {
+    <div class="mb-3"><button class="btn btn-primary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#AddConferenceModal">Add Conference</button></div>
+    
     <table class="table">
         <thead>
         <tr>
@@ -114,6 +118,14 @@ else
 {
     <div class="row"><span>There are no conferences. <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#AddConferenceModal">Add</button></span></div>
 }
+
+<button class="btn btn-primary my-3" type="button" data-bs-toggle="collapse" data-bs-target="#debugInfo">Show/Hide Debug</button>
+
+<div class="collapse" id="debugInfo">
+    <div class="card card-content">
+        <pre>@JsonSerializer.Serialize(Model.Conferences, new JsonSerializerOptions { WriteIndented = true })</pre>
+        </div>
+</div>
 
 @section scripts {
     <script>

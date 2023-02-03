@@ -18,14 +18,14 @@ public static class ConferenceDecider
     private static IConferenceEvent[] Decide(ConferenceState state, IWorkshopCommand workshopCommand) =>
         workshopCommand switch
         {
-            AddWorkshopToConference add => state.LocationAvailableBetweenTimes(add.Location, add.Date, add.Start, add.End)
+            AddWorkshopToConference add => state.CanAddWorkshopToConference(add.Id, add.Date, add.Start, add.End, add.Location, add.Facilitator, out var failures)
                 ? new IConferenceEvent[]
                 {
                     WorkshopAddedToConference.From(state.ConferenceId, add)
                 }
                 : new IConferenceEvent[]
                 {
-                    WorkshopNotAddedToConference.From(state.ConferenceId, add, "Location not available at selected times"), 
+                    WorkshopNotAddedToConference.From(state.ConferenceId, add, failures), 
                 },
             _ => Array.Empty<IConferenceEvent>()
         };
