@@ -13,7 +13,7 @@ public record
         base(database.Find,
             // I'm not sure why the types need to be specified
             EntityHelpers.SaveThenPublish<ParticipantIdentity, ParticipantState, IParticipantEvent>
-                (database.Save, messageBus.PublishAll),
+                (database.Save, messageBus.PublishAll), database.Archive,
             ParticipantDecider.Decider)
     {
     }

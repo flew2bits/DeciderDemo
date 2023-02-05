@@ -26,4 +26,15 @@ public partial class Index
 
         return RedirectToPage();
     }
+
+    public IActionResult OnPostRemoveParticipant(string userName, string reason,
+        [FromServices] ParticipantCommandHandler commandHandler)
+    {
+        if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(reason))
+            return RedirectToPage();
+
+        commandHandler.HandleCommand(userName, new RemoveParticipant(reason));
+
+        return RedirectToPage();
+    }
 }

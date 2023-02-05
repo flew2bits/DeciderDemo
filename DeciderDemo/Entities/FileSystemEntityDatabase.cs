@@ -8,6 +8,8 @@ public class FileSystemEntityDatabaseOptions<TState, TIdentity, TEvent> where TS
     public string Prefix { get; set; } = $"{typeof(TState).Name}_";
     public string BasePath { get; set; } = "ConferenceDB";
 
+    public string ArchivePath { get; set; } = Path.Combine("ConferenceDB", "Archive");
+
     public Evolver<TState, TIdentity, TEvent> Evolver { get; set; } = null!;
     public IdentityConverter<TIdentity>? IdentityConverter { get; set; } = null!;
 }
@@ -110,5 +112,17 @@ public class FileSystemEntityDatabase<TState, TIdentity, TEvent>: FileSystemEnti
         var streamPath = Path.Combine(_options.BasePath, $"{_options.Prefix}{id}.jsonstream");
         File.WriteAllText(path, JsonSerializer.Serialize(state, SerializerOptions));
         File.AppendAllLines(streamPath, events.Select(e => $"{e.GetType().FullName}:"+JsonSerializer.Serialize((object)e)));
+    }
+
+    public void Archive(TIdentity id)
+    {
+        var archiveId = Guid.NewGuid();
+        var path = Path.Combine(_options.BasePath, $"{_options.Prefix}{id}.json");
+        var streamPath = Path.Combine(_options.BasePath, $"{_options.Prefix}{id}.jsonstream");
+        var archivePath = Path.Combine(_options.ArchivePath, $"{archiveId}_{_options.Prefix}{id}.json");
+        var archiveStreamPath = Path.Combine(_options.ArchivePath, $"{archiveId}_{_options.Prefix}{id}.jsonstream");
+        
+        File.Move(path, archivePath);
+        File.Move(streamPath, archiveStreamPath);
     }
 }

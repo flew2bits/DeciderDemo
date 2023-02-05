@@ -37,12 +37,41 @@
                     <button class="btn btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    Are you sure you want to approve the selected participant?
-                    <input type="hidden" name="userName" id="ApproveParticipantUserName"/>
+                    <div class="mb-2">
+                        Are you sure you want to approve the selected participant?
+                        <input type="hidden" name="userName" id="ApproveParticipantUserName"/>
+                    </div>
+                    <
                 </div>
                 <div class="modal-footer">
                     <button class="btn-primary btn" type="submit">Yes</button>
                     <button class="btn-secondary btn" type-="button" data-bs-dismiss="modal">No</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<form method="post" asp-page-handler="RemoveParticipant">
+    <div class="modal fade" id="ConfirmRemoveParticipantModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5>Confirm Remove Participant</h5>
+                    <button class="btn btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-2">
+                    Are you sure you want to remove the selected user?
+                    <input type="hidden" name="UserName" id="ConfirmRemoveParticipantUserName"/>
+                    </div>
+                    <div class="mb-2">
+                        <label for="ConfirmRemoveParticipantReason" class="form-label">Provide a reason for removal (required)</label>
+                        <input type="text" name="Reason" id="ConfirmRemoveParticipantReason" class="form-control" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-danger btn ms-auto" type="submit">Yes</button>
+                    <button class="btn-secondary btn" type="button" data-bs-dismiss="modal">No</button>
                 </div>
             </div>
         </div>

@@ -12,6 +12,7 @@ public record
         MessageBus messageBus) :
         base(database.Find,
             EntityHelpers.SaveThenPublish<Guid, ConferenceState, IConferenceEvent>(database.Save, messageBus.PublishAll), 
+            null,
             ConferenceDecider.Decider)
     {
     }
