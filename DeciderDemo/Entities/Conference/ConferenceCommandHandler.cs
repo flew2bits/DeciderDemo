@@ -1,23 +1,14 @@
 using DeciderDemo.Entities.Conference.Commands;
 using DeciderDemo.Entities.Conference.Events;
+using JetBrains.Annotations;
 
 namespace DeciderDemo.Entities.Conference;
 
-public class ConferenceCommandHandler
+[UsedImplicitly]
+public record ConferenceCommandHandler: EntityCommandHandler<ConferenceState, Guid, IConferenceCommand, IConferenceEvent>
 {
-    private readonly FileSystemConferenceDatabase _database;
-
-    public ConferenceCommandHandler(FileSystemConferenceDatabase database)
+    public ConferenceCommandHandler(FileSystemConferenceDatabase database): 
+        base(database.FindConference, database.SaveConference, ConferenceDecider.Decider)
     {
-        _database = database;
-        _handler = new EntityCommandHandler<ConferenceState, Guid, IConferenceCommand, IConferenceEvent>(
-            _database.FindConference, _database.SaveConference, ConferenceDecider.Decider);
     }
-
-    private readonly
-        EntityCommandHandler<ConferenceState, Guid, IConferenceCommand, IConferenceEvent>
-        _handler; 
-
-    public (ConferenceState, IEnumerable<IConferenceEvent>) HandleCommand(Guid id, IConferenceCommand command) =>
-        _handler.HandleCommand(id, command);
 }

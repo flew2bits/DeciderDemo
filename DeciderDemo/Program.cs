@@ -11,6 +11,7 @@ builder.Services.Configure<FileSystemConferenceDatabaseOptions>(opt =>
     opt.BasePath = "ConferenceDB";
 });
 builder.Services.AddSingleton<FileSystemConferenceDatabase>();
+builder.Services.AddScoped<ConferenceCommandHandler>();
 
 var app = builder.Build();
 
