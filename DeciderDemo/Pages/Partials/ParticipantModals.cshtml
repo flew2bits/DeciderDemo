@@ -1,0 +1,30 @@
+﻿<form method="post" asp-page-handler="AddParticipant">
+<div class="modal fade" id="AddParticipantModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5>Add Participant</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-2">
+                    <label class="form-label" for="AddParticipantUserName">User Name</label>
+                    <input type="text" id="AddParticipantUserName" name="UserName" class="form-control"/>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label" for="AddParticipantFirstName">First Name</label>
+                    <input type="text" id="AddParticipantFirstName" name="FirstName" class="form-control"/>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label" for="AddParticipantLastName">Last Name</label>
+                    <input type="text" id="AddParticipantLastName" name="LastName" class="form-control"/>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Add</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+</form>

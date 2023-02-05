@@ -18,4 +18,13 @@
       <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="7.0.2" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Update="Pages\IndexConferenceHandlers.cs">
+        <DependentUpon>Index.cshtml</DependentUpon>
+      </Compile>
+      <Compile Update="Pages\IndexParticipantHandlers.cs">
+        <DependentUpon>Index.cshtml</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
 </Project>

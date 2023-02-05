@@ -29,7 +29,7 @@ public static class ConferenceDecider
                 {
                     WorkshopNotAddedToConference.From(state.ConferenceId, add, failures),
                 },
-            RemoveConference remove => new IConferenceEvent[]
+            RemoveWorkshopFromConference remove => new IConferenceEvent[]
                 { WorkshopRemovedFromConference.From(state.ConferenceId, remove.Id, remove.User) },
             _ => Array.Empty<IConferenceEvent>()
         };
