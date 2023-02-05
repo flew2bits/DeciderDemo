@@ -3,15 +3,21 @@ using DeciderDemo.Entities.Conference.Events;
 
 namespace DeciderDemo.Entities.Conference;
 
-public static class ConferenceCommandHandler
+public class ConferenceCommandHandler
 {
-    private static readonly
-        EntityCommandHandler<ConferenceState, Guid, IConferenceCommand, IConferenceEvent>
-        Handler = new(
-            FileSystemConferenceDatabase.FindConference, 
-            FileSystemConferenceDatabase.SaveConference,
-            ConferenceDecider.Decider);
+    private readonly FileSystemConferenceDatabase _database;
 
-    public static (ConferenceState, IEnumerable<IConferenceEvent>) HandleCommand(Guid id, IConferenceCommand command) =>
-        Handler.HandleCommand(id, command);
+    public ConferenceCommandHandler(FileSystemConferenceDatabase database)
+    {
+        _database = database;
+        _handler = new EntityCommandHandler<ConferenceState, Guid, IConferenceCommand, IConferenceEvent>(
+            _database.FindConference, _database.SaveConference, ConferenceDecider.Decider);
+    }
+
+    private readonly
+        EntityCommandHandler<ConferenceState, Guid, IConferenceCommand, IConferenceEvent>
+        _handler; 
+
+    public (ConferenceState, IEnumerable<IConferenceEvent>) HandleCommand(Guid id, IConferenceCommand command) =>
+        _handler.HandleCommand(id, command);
 }
