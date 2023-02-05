@@ -10,10 +10,8 @@ public record
 {
     public ConferenceCommandHandler(FileSystemEntityDatabase<ConferenceState, Guid, IConferenceEvent> database,
         MessageBus messageBus) :
-        base(database.Find,
-            EntityHelpers.SaveThenPublish<Guid, ConferenceState, IConferenceEvent>(database.Save, messageBus.PublishAll), 
-            null,
-            ConferenceDecider.Decider)
+        base( ConferenceDecider.Decider, database.Find,
+            EntityHelpers.SaveThenPublish<Guid, ConferenceState, IConferenceEvent>(database.Save, messageBus.PublishAll))
     {
     }
 }

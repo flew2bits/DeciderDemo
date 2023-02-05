@@ -1,10 +1,10 @@
 namespace DeciderDemo;
 
 public abstract record EntityCommandHandler<TState, TIdentity, TCommand, TEvent>(
+    Decider<TState, TIdentity, TCommand, TEvent> Decider,
     Loader<TIdentity, TState> LoadEntity,
     Saver<TIdentity, TState, TEvent> SaveEntity,
-    Archiver<TIdentity>? ArchiveIdentity,
-    Decider<TState, TIdentity, TCommand, TEvent> Decider
+    Archiver<TIdentity>? ArchiveIdentity = null
 )
     where TState : class
     where TCommand : class
