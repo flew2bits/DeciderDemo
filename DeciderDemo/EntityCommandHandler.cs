@@ -1,8 +1,8 @@
 namespace DeciderDemo;
 
 public abstract record EntityCommandHandler<TState, TIdentity, TCommand, TEvent>(
-    Loader<TState, TIdentity> LoadEntity,
-    Saver<TState, TIdentity, TEvent> SaveEntity,
+    Loader<TIdentity, TState> LoadEntity,
+    Saver<TIdentity, TState, TEvent> SaveEntity,
     Decider<TState, TIdentity, TCommand, TEvent> Decider
 )
     where TState : class
@@ -41,8 +41,8 @@ public abstract record EntityCommandHandler<TState, TIdentity, TCommand, TEvent>
     }
 }
 
-public delegate TState Loader<out TState, in TIdentifier>(TIdentifier id) where TState : class;
+public delegate TState Loader<in TIdentifier, out TState>(TIdentifier id) where TState : class;
 
-public delegate void Saver<in TState, in TIdentifier, in TEvent>(TIdentifier id, TState state,
+public delegate void Saver<in TIdentifier, in TState, in TEvent>(TIdentifier id, TState state,
     IEnumerable<TEvent> events)
-    where TState : class;
+    where TState : class where TEvent: class;
