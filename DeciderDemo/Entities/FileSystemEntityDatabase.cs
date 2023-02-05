@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Reflection;
 using System.Text.Json;
 
 namespace DeciderDemo.Entities;
@@ -12,10 +11,7 @@ public class FileSystemEntityDatabaseOptions<TState, TIdentity, TEvent> where TS
     public string ArchivePath { get; set; } = Path.Combine("ConferenceDB", "Archive");
 
     public Evolver<TState, TIdentity, TEvent> Evolver { get; set; } = null!;
-    public IdentityConverter<TIdentity>? IdentityConverter { get; set; } = null!;
 }
-
-public record IdentityConverter<TIdentity>(Func<TIdentity, string> AsString, Func<string, TIdentity> FromString);
 
 public abstract class FileSystemEntityDatabase {
 
@@ -24,55 +20,24 @@ public abstract class FileSystemEntityDatabase {
 }
 
 public class FileSystemEntityDatabase<TState, TIdentity, TEvent>: FileSystemEntityDatabase
-    where TState: class where TEvent: class
+    where TState: class where TEvent: class where TIdentity:IParsable<TIdentity>
 
 {
-    private readonly IdentityConverter<TIdentity> _identityConverter;
     private readonly Evolver<TState, TIdentity, TEvent> _evolver;
     
     public FileSystemEntityDatabase(FileSystemEntityDatabaseOptions<TState, TIdentity, TEvent> options)
     {
-        _identityConverter = options.IdentityConverter
-                             ?? TryBuildConverter()
-                             ?? throw new ArgumentException("IdentityConverter is not defined or could not be determined");
         _evolver = options.Evolver ?? throw new ArgumentException("Evolver is not defined");
         _options = options ?? throw new ArgumentNullException(nameof(options));
     }
 
-    private static IdentityConverter<TIdentity>? TryBuildConverter()
-    {
-        var type = typeof(TIdentity);
-
-        // if (type == typeof(string))
-        // {
-        //     return new IdentityConverter<TIdentity>(s => s as string, s => s);
-        // }
-        
-        var parseMethod = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .FirstOrDefault(m => m.Name == "Parse");
-        if (parseMethod is null) return null;
-        
-        var returnType = parseMethod.ReturnType;
-        if (returnType != type) return null;
-        
-        var parameters = parseMethod.GetParameters();
-        if (parameters.Length != 1) return null;
-        if (parameters[0].ParameterType != typeof(string)) return null;
-
-        TIdentity Parse(string s) => 
-            parseMethod.Invoke(null, new object?[] { s }) is TIdentity i ? i : throw new InvalidOperationException("Could not parse");
-
-        return new IdentityConverter<TIdentity>(i => i?.ToString() ?? throw new InvalidOperationException("Could not convert to string"), Parse);
-    }
-
-    
     private static readonly ConcurrentDictionary<string, Type> TypeMap = new ();
     private readonly FileSystemEntityDatabaseOptions<TState, TIdentity, TEvent> _options;
 
     public TState[] GetAll()
     {
         var files = Directory.EnumerateFiles(_options.BasePath, $"{_options.Prefix}*.json");
-        var ids = files.Select(f => f[(_options.BasePath.Length + 1 + _options.Prefix.Length)..^5]).Select(_identityConverter.FromString);
+        var ids = files.Select(f => f[(_options.BasePath.Length + 1 + _options.Prefix.Length)..^5]).Select(i => TIdentity.Parse(i, null));
         return ids.Select(LoadFromEvents).ToArray();
 
     }
@@ -84,7 +49,7 @@ public class FileSystemEntityDatabase<TState, TIdentity, TEvent>: FileSystemEnti
 
     private TState LoadFromEvents(TIdentity id)
     {
-        var path = Path.Combine(_options.BasePath, $"{_options.Prefix}{_identityConverter.AsString(id)}.jsonstream");
+        var path = Path.Combine(_options.BasePath, $"{_options.Prefix}{id}.jsonstream");
         if (!File.Exists(path)) throw new InvalidOperationException("Could not find entity");
         var events = File.ReadAllLines(path);
         var state = _evolver.InitialState(id);

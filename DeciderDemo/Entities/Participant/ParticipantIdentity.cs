@@ -1,13 +1,20 @@
 ﻿namespace DeciderDemo.Entities.Participant;
 
-public record ParticipantIdentity(string UserName)
+public record ParticipantIdentity(string UserName): IParsable<ParticipantIdentity>
 {
     public override string ToString() => UserName;
-    
-    public static ParticipantIdentity Parse(string value) =>
-        !string.IsNullOrEmpty(value)
-            ? new ParticipantIdentity(value)
-            : throw new InvalidOperationException("Participant Identity must be a non-empty string");
 
-    public static implicit operator ParticipantIdentity(string s) => Parse(s);
+    public static implicit operator ParticipantIdentity(string s) => Parse(s, null);
+    
+    public static ParticipantIdentity Parse(string s, IFormatProvider? provider)
+    =>
+        TryParse(s, provider, out var pi) ? pi : throw new InvalidOperationException("Participant Identity must be a non-empty string");
+
+    public static bool TryParse(string? s, IFormatProvider? provider, out ParticipantIdentity result)
+    {
+        result = null!;
+        if (string.IsNullOrEmpty(s)) return false;
+        result = new ParticipantIdentity(s);
+        return true;
+    }
 }

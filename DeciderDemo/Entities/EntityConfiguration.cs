@@ -7,7 +7,7 @@ public static class EntityConfiguration
 {
     public static IServiceCollection AddEntityDatabase<TState, TIdentity, TEvent>(this IServiceCollection services,
         Action<FileSystemEntityDatabaseOptions<TState, TIdentity, TEvent>> configure)
-        where TState : class where TEvent : class
+        where TState : class where TEvent : class where TIdentity : IParsable<TIdentity>
     {
         var options = new FileSystemEntityDatabaseOptions<TState, TIdentity, TEvent>();
         configure(options);
@@ -27,7 +27,7 @@ public static class EntityConfiguration
         this IServiceCollection services,
         Evolver<TState, TIdentity, TEvent> evolver,
         Action<FileSystemEntityDatabaseOptions<TState, TIdentity, TEvent>>? configure = null)
-        where TState : class where TEvent : class
+        where TState : class where TEvent : class where TIdentity : IParsable<TIdentity>
         => services.AddEntityDatabase<TState, TIdentity, TEvent>(opt =>
         {
             configure?.Invoke(opt);
