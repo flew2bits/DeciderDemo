@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Collections.Concurrent;
+using System.Reflection;
 using System.Text.Json;
 
 namespace DeciderDemo.Entities;
@@ -59,13 +60,13 @@ public class FileSystemEntityDatabase<TState, TIdentity, TEvent>: FileSystemEnti
         if (parameters[0].ParameterType != typeof(string)) return null;
 
         TIdentity Parse(string s) => 
-            parseMethod.Invoke(null, new[] { s }) is TIdentity i ? i : throw new InvalidOperationException("Could not parse");
+            parseMethod.Invoke(null, new object?[] { s }) is TIdentity i ? i : throw new InvalidOperationException("Could not parse");
 
         return new IdentityConverter<TIdentity>(i => i?.ToString() ?? throw new InvalidOperationException("Could not convert to string"), Parse);
     }
 
     
-    private static readonly Dictionary<string, Type> TypeMap = new ();
+    private static readonly ConcurrentDictionary<string, Type> TypeMap = new ();
     private readonly FileSystemEntityDatabaseOptions<TState, TIdentity, TEvent> _options;
 
     public TState[] GetAll()
