@@ -1,3 +1,4 @@
+using DeciderDemo;
 using DeciderDemo.Entities;
 using DeciderDemo.Entities.Conference;
 using DeciderDemo.Entities.Conference.Commands;
@@ -11,6 +12,8 @@ builder.Services.AddEntityDatabase(ParticipantDecider.Decider);
 
 builder.Services.AddScoped<ConferenceCommandHandler>();
 builder.Services.AddScoped<ParticipantCommandHandler>();
+
+builder.Services.AddSingleton<MessageBus>();
 
 var app = builder.Build();
 
