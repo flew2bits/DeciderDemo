@@ -2,16 +2,11 @@ using DeciderDemo;
 using DeciderDemo.Entities;
 using DeciderDemo.Entities.Conference;
 using DeciderDemo.Entities.Conference.Commands;
-using DeciderDemo.Entities.Participant;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
 
-builder.Services.AddEntityDatabase(ConferenceDecider.Decider);
-builder.Services.AddEntityDatabase(ParticipantDecider.Decider);
-
-builder.Services.AddScoped<ConferenceCommandHandler>();
-builder.Services.AddScoped<ParticipantCommandHandler>();
+builder.Services.ConfigureEntities();
 
 builder.Services.AddSingleton<MessageBus>();
 

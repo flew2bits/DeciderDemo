@@ -1,4 +1,7 @@
-﻿namespace DeciderDemo.Entities;
+﻿using DeciderDemo.Entities.Conference;
+using DeciderDemo.Entities.Participant;
+
+namespace DeciderDemo.Entities;
 
 public static class EntityConfiguration
 {
@@ -8,7 +11,7 @@ public static class EntityConfiguration
     {
         var options = new FileSystemEntityDatabaseOptions<TState, TIdentity, TEvent>();
         configure(options);
-        
+
         services.AddSingleton(new FileSystemEntityDatabase<TState, TIdentity, TEvent>(options))
             .AddTransient<GetEntity<TState, TIdentity>>(svc =>
                 svc.GetRequiredService<FileSystemEntityDatabase<TState, TIdentity, TEvent>>().Find)
@@ -22,15 +25,21 @@ public static class EntityConfiguration
 
     public static IServiceCollection AddEntityDatabase<TState, TIdentity, TEvent>(
         this IServiceCollection services,
-        Evolver<TState, TIdentity, TEvent> evolver, 
+        Evolver<TState, TIdentity, TEvent> evolver,
         Action<FileSystemEntityDatabaseOptions<TState, TIdentity, TEvent>>? configure = null)
-    
         where TState : class where TEvent : class
         => services.AddEntityDatabase<TState, TIdentity, TEvent>(opt =>
         {
             configure?.Invoke(opt);
             opt.Evolver = evolver;
         });
+
+    public static IServiceCollection ConfigureEntities(this IServiceCollection services) =>
+        services
+            .AddEntityDatabase(ConferenceDecider.Decider)
+            .AddEntityDatabase(ParticipantDecider.Decider)
+            .AddScoped<ConferenceCommandHandler>()
+            .AddScoped<ParticipantCommandHandler>();
 }
 
 public delegate TState GetEntity<out TState, in TIdentity>(TIdentity identity);
