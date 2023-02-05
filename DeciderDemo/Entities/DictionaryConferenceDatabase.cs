@@ -2,7 +2,7 @@ using DeciderDemo.Entities.Conference;
 
 namespace DeciderDemo.Entities;
 
-public static class ConferenceDatabase
+public static class DictionaryConferenceDatabase
 {
     private static readonly Dictionary<Guid, ConferenceState> Database = new();
 

@@ -12,7 +12,7 @@ public class Index : PageModel
     
     public void OnGet()
     {
-        Conferences = ConferenceDatabase.GetAllConferences();
+        Conferences = FileSystemConferenceDatabase.GetAllConferences();
     }
 
     public IActionResult OnPostAddConference(string? conferenceName, DateTime? conferenceStart, DateTime? conferenceEnd)

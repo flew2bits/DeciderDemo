@@ -14,3 +14,5 @@ public record EntityCommandHandler<TState, TIdentity, TCommand, TEvent>(Func<TId
         return (newState, events);
     }
 }
+
+public delegate TState Loader<out TState, TIdentifier>(Guid id) where TState : class;
