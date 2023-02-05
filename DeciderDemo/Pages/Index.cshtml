@@ -51,6 +51,31 @@ else
     <div>
         <button class="btn btn-primary btn-sm" type="button" data-bs-target="#AddParticipantModal" data-bs-toggle="modal">Add Participant</button>
     </div>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>User Name</th>
+            <th>Name</th>
+            <td></td>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var participant in Model.Participants)
+        {
+            <tr data-user-name="@participant.Identity.UserName">
+                <td>@participant.Identity.UserName</td>
+                <td>@participant.FirstName @participant.LastName</td>
+                <td>
+                    @if (!participant.IsApproved)
+                    {
+                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#ApproveParticipantModal">Approve</button>   
+                    }
+                    <button class="btn btn-danger btn-sm ms-1">Remove</button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
 }
 else
 {
@@ -89,9 +114,14 @@ else
                 $('#WorkshopListItems')
                 .html(data.map(d => `<li class="my-1">${d.id}: ${d.name} @@ ${d.start}-${d.end} on ${d.date} <button class="btn btn-danger btn-sm" type="submit" formaction="/Workshops/${conferenceId}/remove/${d.id}">Remove</button></li>`).join(""));
             })
-        }).on('click', '.removeWorkshop', evt => {
-
         });
+        
+        $('#ApproveParticipantModal').on('show.bs.modal', evt => {
+            let $related = $(evt.relatedTarget);
+            let $tr = $related.closest('tr');
+            let userName = $tr.data('userName');
+            $('#ApproveParticipantUserName').val(userName);
+        })
         
     });
     </script>

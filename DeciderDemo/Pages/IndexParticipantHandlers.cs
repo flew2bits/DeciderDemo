@@ -17,4 +17,13 @@ public partial class Index
 
         return RedirectToPage();
     }
+
+    public IActionResult OnPostApproveParticipant(string userName,
+        [FromServices] ParticipantCommandHandler commandHandler)
+    {
+        if (string.IsNullOrEmpty(userName)) return RedirectToPage();
+        commandHandler.HandleCommand(userName, ApproveParticipant.Instance);
+
+        return RedirectToPage();
+    }
 }
