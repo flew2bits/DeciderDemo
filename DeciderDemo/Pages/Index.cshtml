@@ -10,6 +10,11 @@
 <partial name="Partials/ConferenceModals"/>
 <partial name="Partials/ParticipantModals"/>
 
+@if (!string.IsNullOrEmpty(TempData["Message"] as string))
+{
+    <div class="alert alert-warning">@TempData["Message"]</div>
+}
+
 @if (Model.Conferences.Any())
 {
     <div class="mb-3">
