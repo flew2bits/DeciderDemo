@@ -8,10 +8,9 @@ namespace DeciderDemo.Entities.Conference;
 public record
     ConferenceCommandHandler : EntityCommandHandler<ConferenceState, Guid, IConferenceCommand, IConferenceEvent>
 {
-    public ConferenceCommandHandler(FileSystemEntityDatabase<ConferenceState, Guid, IConferenceEvent> database,
-        MessageBus messageBus) :
+    public ConferenceCommandHandler(FileSystemEntityDatabase<ConferenceState, Guid, IConferenceEvent> database) :
         base( ConferenceDecider.Decider, database.Find,
-            EntityHelpers.SaveThenPublish<Guid, ConferenceState, IConferenceEvent>(database.Save, messageBus.PublishAll))
+            EntityHelpers.SaveThenPublish<Guid, ConferenceState, IConferenceEvent>(database.Save, MessageBus.PublishAll))
     {
     }
 }

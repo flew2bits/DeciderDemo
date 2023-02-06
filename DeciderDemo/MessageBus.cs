@@ -8,7 +8,7 @@ public class MessageBus
         Console.WriteLine($"\t{System.Text.Json.JsonSerializer.Serialize(@event)}");
     }
 
-    public void PublishAll(IEnumerable<object> events)
+    public static void PublishAll(IEnumerable<object> events)
     {
         foreach (var @event in events) Publish(@event);
     }

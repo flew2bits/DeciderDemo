@@ -7,16 +7,15 @@ public class FileSystemEntityDatabaseOptions<TState, TIdentity, TEvent> where TS
 {
     public string Prefix { get; set; } = $"{typeof(TState).Name}_";
     public string BasePath { get; set; } = "ConferenceDB";
-
     public string ArchivePath { get; set; } = Path.Combine("ConferenceDB", "Archive");
 
     public Evolver<TState, TIdentity, TEvent> Evolver { get; set; } = null!;
 }
 
 public abstract class FileSystemEntityDatabase {
-
     protected static readonly JsonSerializerOptions
         SerializerOptions = new() { WriteIndented = true }; 
+    protected static readonly ConcurrentDictionary<string, Type> TypeMap = new ();
 }
 
 public class FileSystemEntityDatabase<TState, TIdentity, TEvent>: FileSystemEntityDatabase
@@ -31,7 +30,6 @@ public class FileSystemEntityDatabase<TState, TIdentity, TEvent>: FileSystemEnti
         _options = options ?? throw new ArgumentNullException(nameof(options));
     }
 
-    private static readonly ConcurrentDictionary<string, Type> TypeMap = new ();
     private readonly FileSystemEntityDatabaseOptions<TState, TIdentity, TEvent> _options;
 
     public TState[] GetAll()

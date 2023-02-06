@@ -8,12 +8,11 @@ public record
         IParticipantEvent>
 {
     public ParticipantCommandHandler(
-        FileSystemEntityDatabase<ParticipantState, ParticipantIdentity, IParticipantEvent> database,
-        MessageBus messageBus) :
+        FileSystemEntityDatabase<ParticipantState, ParticipantIdentity, IParticipantEvent> database) :
         base(ParticipantDecider.Decider, database.Find,
             // I'm not sure why the types need to be specified
             EntityHelpers.SaveThenPublish<ParticipantIdentity, ParticipantState, IParticipantEvent>
-                (database.Save, messageBus.PublishAll), database.Archive
+                (database.Save, MessageBus.PublishAll), database.Archive
             )
     {
     }
