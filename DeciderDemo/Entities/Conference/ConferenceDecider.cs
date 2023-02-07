@@ -6,15 +6,16 @@ namespace DeciderDemo.Entities.Conference;
 
 public static class ConferenceDecider
 {
-    private static object[] From(params object[] events) => events;
+    private static object[] Events(params object[] events) => events;
+    private static readonly object[] NoEvents = Array.Empty<object>();
     
     private static object[] Decide(ConferenceState state, object command) =>
         command switch
         {
-            StartConference sc => From(ConferenceStarted.From(state.ConferenceId, sc.ConferenceName, sc.StartDate, sc.EndDate)),
+            StartConference sc => Events(ConferenceStarted.From(state.ConferenceId, sc.ConferenceName, sc.StartDate, sc.EndDate)),
             IWorkshopCommand workshopCommand => Decide(state, workshopCommand),
 
-            _ => Array.Empty<object>()
+            _ => NoEvents
         };
 
     private static object[] Decide(ConferenceState state, IWorkshopCommand workshopCommand) =>
@@ -22,10 +23,11 @@ public static class ConferenceDecider
         {
             AddWorkshopToConference add => state.CanAddWorkshopToConference(add.Id, add.Date, add.Start, add.End,
                 add.Location, add.Facilitator, out var failures)
-                ? From(WorkshopAddedToConference.From(state.ConferenceId, add))
-                : From(WorkshopNotAddedToConference.From(state.ConferenceId, add, failures)),
-            RemoveWorkshopFromConference remove => From(WorkshopRemovedFromConference.From(state.ConferenceId, remove.Id)),
-            _ => Array.Empty<object>()
+                ? Events(WorkshopAddedToConference.From(state.ConferenceId, add))
+                : Events(WorkshopNotAddedToConference.From(state.ConferenceId, add, failures)),
+            RemoveWorkshopFromConference remove => Events(WorkshopRemovedFromConference.From(state.ConferenceId, remove.Id)),
+            ReserveWorkshopSeat reserve => NoEvents,
+            _ => NoEvents
         };
 
     private static ConferenceState Evolve(ConferenceState state, object @event) =>
@@ -43,6 +45,14 @@ public static class ConferenceDecider
             WorkshopRemovedFromConference x => state with
             {
                 Workshops = state.Workshops.Where(w => w.Id != x.Id).ToArray()
+            },
+            WorkshopSeatReserved r => state with
+            {
+                Workshops = state.Workshops
+                    .Select(w => w.Id == r.Id 
+                        ? w with {Reservations = w.Reservations.Append(new WorkshopReservation(r.UserName)).ToArray()}
+                        : w)
+                    .ToArray()
             },
             _ => state
         };

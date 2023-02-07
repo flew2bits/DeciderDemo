@@ -1,0 +1,1 @@
+public record ReserveWorkshopSeat(string Id, string UserName);

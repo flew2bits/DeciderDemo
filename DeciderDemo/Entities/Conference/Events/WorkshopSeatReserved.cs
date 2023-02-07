@@ -1,0 +1,1 @@
+public record WorkshopSeatReserved(Guid ConferenceId, string Id, string UserName);
