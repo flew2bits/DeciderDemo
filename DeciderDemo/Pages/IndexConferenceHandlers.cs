@@ -15,7 +15,7 @@ public partial class Index
         {
             commandHandler.HandleCommand(Guid.NewGuid(),
                 StartConference.From(conferenceName, DateOnly.FromDateTime(conferenceStart.Value),
-                    DateOnly.FromDateTime(conferenceEnd.Value), "tander3"));
+                    DateOnly.FromDateTime(conferenceEnd.Value)));
         }
 
         return RedirectToPage();
@@ -40,7 +40,7 @@ public partial class Index
             workshopName,
             DateOnly.FromDateTime(workshopDate.Value), TimeOnly.FromDateTime(workshopStart.Value),
             TimeOnly.FromDateTime(workshopEnd.Value),
-            workshopLocation, workshopFacilitator, workshopCapacity.Value, "tander3"));
+            workshopLocation, workshopFacilitator, workshopCapacity.Value));
 
         if (events.SingleOrDefault() is WorkshopNotAddedToConference notAdded)
         {

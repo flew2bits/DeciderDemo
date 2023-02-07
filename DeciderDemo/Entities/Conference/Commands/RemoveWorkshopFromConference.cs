@@ -1,6 +1,6 @@
 ﻿namespace DeciderDemo.Entities.Conference.Commands;
 
-public record RemoveWorkshopFromConference(string Id, string User) : IWorkshopCommand
+public record RemoveWorkshopFromConference(string Id) : IWorkshopCommand
 {
-    public static RemoveWorkshopFromConference From(string id, string user) => new(id, user);
+    public static RemoveWorkshopFromConference From(string id) => new(id);
 }

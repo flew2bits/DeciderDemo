@@ -1,14 +1,13 @@
 namespace DeciderDemo;
 
-public abstract record EntityCommandHandler<TState, TIdentity, TCommand, TEvent>(
-    Decider<TState, TIdentity, TCommand, TEvent> Decider,
+public abstract record EntityCommandHandler<TState, TIdentity, TCommand>(
+    Decider<TState, TIdentity, TCommand> Decider,
     Loader<TIdentity, TState> LoadEntity,
-    IEnumerable<Saver<TIdentity, TState, TEvent>> EntitySavers,
+    IEnumerable<Saver<TIdentity, TState>> EntitySavers,
     Archiver<TIdentity>? ArchiveIdentity = null
 )
     where TState : class
     where TCommand : class
-    where TEvent : class
 {
     private bool TryLoad(TIdentity identity, out TState? state)
     {
@@ -26,7 +25,7 @@ public abstract record EntityCommandHandler<TState, TIdentity, TCommand, TEvent>
         return true;
     }
     
-    public (TState, IEnumerable<TEvent>) HandleCommand(TIdentity identity, TCommand command)
+    public (TState, IEnumerable<object>) HandleCommand(TIdentity identity, TCommand command)
     {
         var state = (TryLoad(identity, out var s), Decider.IsCreator(command)) switch
         {
@@ -54,8 +53,8 @@ public abstract record EntityCommandHandler<TState, TIdentity, TCommand, TEvent>
 
 public delegate TState Loader<in TIdentifier, out TState>(TIdentifier id) where TState : class;
 
-public delegate bool Saver<in TIdentifier, in TState, in TEvent>(TIdentifier id, TState state,
-    IEnumerable<TEvent> events)
-    where TState : class where TEvent: class;
+public delegate bool Saver<in TIdentifier, in TState>(TIdentifier id, TState state,
+    IEnumerable<object> events)
+    where TState : class;
 
 public delegate void Archiver<in TIdentifier>(TIdentifier id);
