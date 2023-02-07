@@ -17,6 +17,4 @@ public partial class Index : PageModel
         Conferences = getAllConferences().ToArray();
         Participants = getAllParticipants().ToArray();
     }
-
-
 }

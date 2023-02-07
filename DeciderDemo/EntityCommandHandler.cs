@@ -35,8 +35,10 @@ public abstract record EntityCommandHandler<TState, TIdentity>(
         };
         
         var (newState, events) = Decider.Handle(state, command);
-        // Archive if newState is terminal?
 
+        // don't try to save if nothing happened
+        if (!events.Any()) return (state, Array.Empty<object>());
+        
         foreach (var saver in EntitySavers)
         {
             if (!saver(identity, newState, events)) break;

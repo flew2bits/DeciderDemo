@@ -43,22 +43,19 @@ public class FileSystemEntityDatabase<TIdentity, TState> : FileSystemEntityDatab
         var files = Directory.EnumerateFiles(_options.BasePath, $"{_options.Prefix}*.json");
         var ids = files.Select(f => f[(_options.BasePath.Length + 1 + _options.Prefix.Length)..^5])
             .Select(i => TIdentity.Parse(i, null));
-        return ids.Select(LoadFromEvents).ToArray();
+        return ids.Select(HydrateState).ToArray();
     }
 
-    public TState Find(TIdentity id)
-    {
-        return LoadFromEvents(id);
-    }
+    public TState Find(TIdentity id) => HydrateState(id);
 
-    private TState LoadFromEvents(TIdentity id)
-    {
+    private TState HydrateState(TIdentity id)
+        => LoadEventStream(id).Aggregate( _evolver.InitialState(id), _evolver.Evolve);
 
-        
+    private IEnumerable<object> LoadEventStream(TIdentity id)
+    {
         var path = Path.Combine(_options.BasePath, $"{_options.Prefix}{id}.jsonstream");
         if (!File.Exists(path)) throw new InvalidOperationException("Could not find entity");
         var events = File.ReadAllLines(path);
-        var state = _evolver.InitialState(id);
         foreach (var linePair in events.Chunk(2))
         {
             var eventMetadata = JsonSerializer.Deserialize<EventMetadata>(linePair.First());
@@ -79,12 +76,11 @@ public class FileSystemEntityDatabase<TIdentity, TState> : FileSystemEntityDatab
 
             if (JsonSerializer.Deserialize(linePair.Last(), type) is not { } @event)
                 throw new InvalidOperationException("Could not parse type");
-            state = _evolver.Evolve(state, @event);
+
+            yield return @event;
         }
-
-        return state;
     }
-
+    
     public bool Save(TIdentity id, TState state, IEnumerable<object> events)
     {
         try
