@@ -5,17 +5,17 @@ namespace DeciderDemo.Entities.Participant;
 
 public static class ParticipantDecider
 {
-    private static IParticipantEvent[] Decide(ParticipantState state, IParticipantCommand command) =>
+    private static object[] Decide(ParticipantState state, IParticipantCommand command) =>
         command switch
         {
-            SignupParticipant sp => new IParticipantEvent[]
-                { new ParticipantSignedUp(state.Identity.UserName, sp.FirstName, sp.LastName, DateTime.UtcNow) },
+            SignupParticipant sp => new object[]
+                { new ParticipantSignedUp(state.Identity.UserName, sp.FirstName, sp.LastName) },
             ApproveParticipant => state.IsApproved()
-                ? Array.Empty<IParticipantEvent>()
-                : new IParticipantEvent[] { new ParticipantApproved(state.Identity.UserName, DateTime.UtcNow) },
-            RemoveParticipant rp => new IParticipantEvent[]
-                { new ParticipantRemoved(state.Identity.UserName, rp.Reason, DateTime.UtcNow) },
-            _ => Array.Empty<IParticipantEvent>()
+                ? Array.Empty<object>()
+                : new object[] { new ParticipantApproved(state.Identity.UserName) },
+            RemoveParticipant rp => new object[]
+                { new ParticipantRemoved(state.Identity.UserName, rp.Reason) },
+            _ => Array.Empty<object>()
         };
 
     private static ParticipantState Evolve(ParticipantState state, object @event) =>
