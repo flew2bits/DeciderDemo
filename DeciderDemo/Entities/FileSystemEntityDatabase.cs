@@ -70,12 +70,23 @@ public class FileSystemEntityDatabase<TState, TIdentity, TEvent>: FileSystemEnti
         return state;
     }
 
-    public void Save(TIdentity id, TState state, IEnumerable<TEvent> events)
+    public bool Save(TIdentity id, TState state, IEnumerable<TEvent> events)
     {
-        var path = Path.Combine(_options.BasePath, $"{_options.Prefix}{id}.json");
-        var streamPath = Path.Combine(_options.BasePath, $"{_options.Prefix}{id}.jsonstream");
-        File.WriteAllText(path, JsonSerializer.Serialize(state, SerializerOptions));
-        File.AppendAllLines(streamPath, events.Select(e => $"{e.GetType().FullName}:"+JsonSerializer.Serialize((object)e)));
+        try
+        {
+            var path = Path.Combine(_options.BasePath, $"{_options.Prefix}{id}.json");
+            var streamPath = Path.Combine(_options.BasePath, $"{_options.Prefix}{id}.jsonstream");
+            File.WriteAllText(path, JsonSerializer.Serialize(state, SerializerOptions));
+            File.AppendAllLines(streamPath,
+                events.Select(e => $"{e.GetType().FullName}:" + JsonSerializer.Serialize((object)e)));
+        }
+        catch
+        {
+            return false;
+            
+        }
+
+        return true;
     }
 
     public void Archive(TIdentity id)

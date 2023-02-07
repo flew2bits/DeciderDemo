@@ -3,7 +3,7 @@ namespace DeciderDemo;
 public abstract record EntityCommandHandler<TState, TIdentity, TCommand, TEvent>(
     Decider<TState, TIdentity, TCommand, TEvent> Decider,
     Loader<TIdentity, TState> LoadEntity,
-    Saver<TIdentity, TState, TEvent> SaveEntity,
+    IEnumerable<Saver<TIdentity, TState, TEvent>> EntitySavers,
     Archiver<TIdentity>? ArchiveIdentity = null
 )
     where TState : class
@@ -39,7 +39,11 @@ public abstract record EntityCommandHandler<TState, TIdentity, TCommand, TEvent>
         var (newState, events) = Decider.Handle(state, command);
         // Archive if newState is terminal?
 
-        SaveEntity(identity, newState, events);
+        foreach (var saver in EntitySavers)
+        {
+            if (!saver(identity, newState, events)) break;
+        }
+
         if (Decider.IsFinal(newState))
         {
                ArchiveIdentity?.Invoke(identity);
@@ -50,7 +54,7 @@ public abstract record EntityCommandHandler<TState, TIdentity, TCommand, TEvent>
 
 public delegate TState Loader<in TIdentifier, out TState>(TIdentifier id) where TState : class;
 
-public delegate void Saver<in TIdentifier, in TState, in TEvent>(TIdentifier id, TState state,
+public delegate bool Saver<in TIdentifier, in TState, in TEvent>(TIdentifier id, TState state,
     IEnumerable<TEvent> events)
     where TState : class where TEvent: class;
 
