@@ -8,9 +8,6 @@ builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
 builder.Services.AddHttpContextAccessor();
 builder.Services.ConfigureEntities();
 
-
-builder.Services.AddSingleton<MessageBus>();
-
 var app = builder.Build();
 
 app.MapGet("/Workshops/{conferenceId:guid}", (Guid conferenceId, Loader<Guid, ConferenceState> find) =>

@@ -5,16 +5,16 @@ namespace DeciderDemo.Entities.Participant;
 
 public static class ParticipantDecider
 {
+    private static object[] From(params object[] events) => events;
+    
     private static object[] Decide(ParticipantState state, object command) =>
         command switch
         {
-            SignupParticipant sp => new object[]
-                { new ParticipantSignedUp(state.Identity.UserName, sp.FirstName, sp.LastName) },
+            SignupParticipant sp => From(new ParticipantSignedUp(state.Identity.UserName, sp.FirstName, sp.LastName)),
             ApproveParticipant => state.IsApproved()
                 ? Array.Empty<object>()
-                : new object[] { new ParticipantApproved(state.Identity.UserName) },
-            RemoveParticipant rp => new object[]
-                { new ParticipantRemoved(state.Identity.UserName, rp.Reason) },
+                : From(new ParticipantApproved(state.Identity.UserName)),
+            RemoveParticipant rp => From(new ParticipantRemoved(state.Identity.UserName, rp.Reason)),
             _ => Array.Empty<object>()
         };
 

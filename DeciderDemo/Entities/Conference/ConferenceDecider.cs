@@ -6,11 +6,12 @@ namespace DeciderDemo.Entities.Conference;
 
 public static class ConferenceDecider
 {
+    private static object[] From(params object[] events) => events;
+    
     private static object[] Decide(ConferenceState state, object command) =>
         command switch
         {
-            StartConference sc => new object[]
-                { ConferenceStarted.From(state.ConferenceId, sc.ConferenceName, sc.StartDate, sc.EndDate) },
+            StartConference sc => From(ConferenceStarted.From(state.ConferenceId, sc.ConferenceName, sc.StartDate, sc.EndDate)),
             IWorkshopCommand workshopCommand => Decide(state, workshopCommand),
 
             _ => Array.Empty<object>()
@@ -21,16 +22,9 @@ public static class ConferenceDecider
         {
             AddWorkshopToConference add => state.CanAddWorkshopToConference(add.Id, add.Date, add.Start, add.End,
                 add.Location, add.Facilitator, out var failures)
-                ? new object[]
-                {
-                    WorkshopAddedToConference.From(state.ConferenceId, add)
-                }
-                : new object[]
-                {
-                    WorkshopNotAddedToConference.From(state.ConferenceId, add, failures),
-                },
-            RemoveWorkshopFromConference remove => new object[]
-                { WorkshopRemovedFromConference.From(state.ConferenceId, remove.Id) },
+                ? From(WorkshopAddedToConference.From(state.ConferenceId, add))
+                : From(WorkshopNotAddedToConference.From(state.ConferenceId, add, failures)),
+            RemoveWorkshopFromConference remove => From(WorkshopRemovedFromConference.From(state.ConferenceId, remove.Id)),
             _ => Array.Empty<object>()
         };
 
