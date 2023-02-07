@@ -1,13 +1,12 @@
 namespace DeciderDemo;
 
-public abstract record EntityCommandHandler<TState, TIdentity, TCommand>(
-    Decider<TState, TIdentity, TCommand> Decider,
+public abstract record EntityCommandHandler<TState, TIdentity>(
+    Decider<TState, TIdentity> Decider,
     Loader<TIdentity, TState> LoadEntity,
     IEnumerable<Saver<TIdentity, TState>> EntitySavers,
     Archiver<TIdentity>? ArchiveIdentity = null
 )
     where TState : class
-    where TCommand : class
 {
     private bool TryLoad(TIdentity identity, out TState? state)
     {
@@ -25,7 +24,7 @@ public abstract record EntityCommandHandler<TState, TIdentity, TCommand>(
         return true;
     }
     
-    public (TState, IEnumerable<object>) HandleCommand(TIdentity identity, TCommand command)
+    public (TState, IEnumerable<object>) HandleCommand(TIdentity identity, object command)
     {
         var state = (TryLoad(identity, out var s), Decider.IsCreator(command)) switch
         {

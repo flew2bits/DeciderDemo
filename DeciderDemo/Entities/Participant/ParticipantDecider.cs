@@ -5,7 +5,7 @@ namespace DeciderDemo.Entities.Participant;
 
 public static class ParticipantDecider
 {
-    private static object[] Decide(ParticipantState state, IParticipantCommand command) =>
+    private static object[] Decide(ParticipantState state, object command) =>
         command switch
         {
             SignupParticipant sp => new object[]
@@ -29,7 +29,7 @@ public static class ParticipantDecider
 
     private static ParticipantState InitialState(ParticipantIdentity id) => new(id, string.Empty, string.Empty, ParticipantStatus.New);
 
-    public static readonly Decider<ParticipantState, ParticipantIdentity, IParticipantCommand>
+    public static readonly Decider<ParticipantState, ParticipantIdentity>
         Decider =
             new(Decide, Evolve, InitialState, s => s.Status is ParticipantStatus.Terminated, c => c is SignupParticipant);
 }

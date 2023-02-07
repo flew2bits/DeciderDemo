@@ -5,17 +5,16 @@ public record Evolver<TState, TIdentity>(
     Func<TIdentity, TState> InitialState
 ) where TState : class;
 
-public record Decider<TState, TIdentity, TCommand>(
-        Func<TState, TCommand, IEnumerable<object>> Decide,
+public record Decider<TState, TIdentity>(
+        Func<TState, object, IEnumerable<object>> Decide,
         Func<TState, object, TState> Evolve,
         Func<TIdentity, TState> InitialState,
         Predicate<TState> IsFinal,
-        Predicate<TCommand> IsCreator)
+        Predicate<object> IsCreator)
     : Evolver<TState, TIdentity>(Evolve, InitialState)
     where TState : class
-    where TCommand : class
 {
-    public (TState, object[]) Handle(TState state, TCommand command)
+    public (TState, object[]) Handle(TState state, object command)
     {
         ArgumentNullException.ThrowIfNull(state);
         ArgumentNullException.ThrowIfNull(command);

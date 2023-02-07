@@ -1,6 +1,6 @@
 ﻿namespace DeciderDemo.Entities.Participant.Commands;
 
-public record ApproveParticipant : IParticipantCommand
+public record ApproveParticipant
 {
     private ApproveParticipant()
     {

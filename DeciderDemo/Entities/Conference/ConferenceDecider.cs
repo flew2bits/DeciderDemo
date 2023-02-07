@@ -6,7 +6,7 @@ namespace DeciderDemo.Entities.Conference;
 
 public static class ConferenceDecider
 {
-    private static object[] Decide(ConferenceState state, IConferenceCommand command) =>
+    private static object[] Decide(ConferenceState state, object command) =>
         command switch
         {
             StartConference sc => new object[]
@@ -58,8 +58,8 @@ public static class ConferenceDecider
 
     private static bool IsTerminal(ConferenceState _) => false;
 
-    private static bool IsCreator(IConferenceCommand c) => c is StartConference;
+    private static bool IsCreator(object c) => c is StartConference;
 
-    public static readonly Decider<ConferenceState, Guid, IConferenceCommand> Decider =
+    public static readonly Decider<ConferenceState, Guid> Decider =
         new(Decide, Evolve, InitialState, IsTerminal, IsCreator);
 }
