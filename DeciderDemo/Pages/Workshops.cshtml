@@ -1,0 +1,67 @@
+@page "{conferenceId:guid}"
+@model DeciderDemo.Pages.Workshops
+
+@{
+    var participants = Model.UserNames.Select(p => new SelectListItem($"{p.FirstName} {p.LastName}", p.Identity.UserName));
+}
+
+@if (TempData["Message"] is string message)
+{
+    <div class="alert alert-warning">@message</div>
+}
+
+<form method="post" asp-page-handler="ReserveWorkshopSeat">
+    <div class="modal fade" id="ReserveSeatModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5>Reserve a seat for <span id="ReserveSeatWorkshopTitle"></span></h5>
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-2">
+                        <label for="ReserveSeatWorkshopUser" class="form-label">Select a Participant</label>
+                        <select id="ReserveSeatWorkshopUser" asp-items="participants" class="form-select" name="ParticipantId">
+                            <option disabled hidden selected>Choose One</option>
+                        </select>
+                    </div>
+                    <input type="hidden" id="ReserveSeatWorkshopId" name="WorkshopId"/>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Reserve</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Id</th>
+        <th>Title</th>
+        <th>Date</th>
+        <th>Times</th>
+        <th>Seats</th>
+        <td></td>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var workshop in Model.WorkshopList)
+    {
+        <tr data-workshop-id="@workshop.Id" data-workshop-name="@workshop.Name">
+            <td>@workshop.Id</td>
+            <td>@workshop.Name</td>
+            <td>@workshop.Date.ToShortDateString()</td>
+            <td>@workshop.Start.ToShortTimeString() - @workshop.End.ToShortTimeString()</td>
+            <td>@workshop.Reservations.Length / @workshop.Capacity</td>
+            <td><button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#ReserveSeatModal">Reserve</button></td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@section Scripts{
+    <script src="/js/workshops.js"></script>    
+}

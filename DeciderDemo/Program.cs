@@ -9,10 +9,10 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.ConfigureEntities();
 
 var app = builder.Build();
-
-app.MapGet("/Workshops/{conferenceId:guid}", (Guid conferenceId, Loader<Guid, ConferenceState> find) =>
-    Results.Json(find(conferenceId).Workshops)
-);
+app.UseStaticFiles();
+// app.MapGet("/Workshops/{conferenceId:guid}", (Guid conferenceId, Loader<Guid, ConferenceState> find) =>
+//     Results.Json(find(conferenceId).Workshops)
+// );
 
 app.MapPost("/Workshops/{conferenceId:guid}/remove/{id}", (Guid conferenceId, string id, ConferenceCommandHandler commandHandler) =>
 {

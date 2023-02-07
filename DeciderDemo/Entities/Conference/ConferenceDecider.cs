@@ -26,7 +26,9 @@ public static class ConferenceDecider
                 ? Events(WorkshopAddedToConference.From(state.ConferenceId, add))
                 : Events(WorkshopNotAddedToConference.From(state.ConferenceId, add, failures)),
             RemoveWorkshopFromConference remove => Events(WorkshopRemovedFromConference.From(state.ConferenceId, remove.Id)),
-            ReserveWorkshopSeat reserve => NoEvents,
+            ReserveWorkshopSeat reserve => state.Workshops.CanReserveSeatForWorkshopParticipant(reserve.Id, reserve.UserName, out var failures)
+            ? Events(new WorkshopSeatReserved(state.ConferenceId, reserve.Id, reserve.UserName))
+            : Events(new WorkshopSeatNotReserved(state.ConferenceId, reserve.Id, reserve.UserName, failures)),
             _ => NoEvents
         };
 
