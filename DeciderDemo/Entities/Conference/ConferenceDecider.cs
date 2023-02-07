@@ -44,7 +44,7 @@ public static class ConferenceDecider
             WorkshopAddedToConference x => state with
             {
                 Workshops = state.Workshops.Append(new Workshop(x.Id, x.WorkshopName, x.Date, x.Start, x.End,
-                    x.Location, x.Facilitator, x.Capacity)).ToArray()
+                    x.Location, x.Facilitator, x.Capacity, Array.Empty<WorkshopReservation>())).ToArray()
             },
             WorkshopRemovedFromConference x => state with
             {
@@ -60,6 +60,6 @@ public static class ConferenceDecider
 
     private static bool IsCreator(object c) => c is StartConference;
 
-    public static readonly Decider<ConferenceState, Guid> Decider =
+    public static readonly Decider<Guid, ConferenceState> Decider =
         new(Decide, Evolve, InitialState, IsTerminal, IsCreator);
 }

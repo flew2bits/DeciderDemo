@@ -7,29 +7,32 @@ namespace DeciderDemo.Entities;
 
 public static class EntityConfiguration
 {
-    public static IServiceCollection AddEntityDatabase<TState, TIdentity>(this IServiceCollection services,
-        Action<FileSystemEntityDatabaseOptions<TState, TIdentity>> configure)
+    public static IServiceCollection AddEntityDatabase<TIdentity, TState>(this IServiceCollection services,
+        Action<FileSystemEntityDatabaseOptions<TIdentity, TState>> configure)
         where TState : class where TIdentity : IParsable<TIdentity>
     {
         services.Configure(configure);
 
-        services.AddScoped<FileSystemEntityDatabase<TState, TIdentity>>()
-            .AddTransient<GetEntity<TState, TIdentity>>(svc =>
-                svc.GetRequiredService<FileSystemEntityDatabase<TState, TIdentity>>().Find)
-            .AddTransient<GetAllEntities<TState>>(svc =>
-                svc.GetRequiredService<FileSystemEntityDatabase<TState, TIdentity>>().GetAll)
-            .AddTransient<SaveEntity<TState, TIdentity>>(svc =>
-                svc.GetRequiredService<FileSystemEntityDatabase<TState, TIdentity>>().Save);
+        services.AddScoped<FileSystemEntityDatabase<TIdentity, TState>>()
+            .AddTransient<Saver<TIdentity, TState>>(s =>
+                s.GetRequiredService<FileSystemEntityDatabase<TIdentity, TState>>().Save)
+            .AddTransient<Loader<TIdentity, TState>>(s =>
+                s.GetRequiredService<FileSystemEntityDatabase<TIdentity, TState>>().Find)
+            .AddTransient<Archiver<TIdentity>>(s =>
+                s.GetRequiredService<FileSystemEntityDatabase<TIdentity, TState>>().Archive)
+            .AddTransient<GetAllEntities<TState>>(s =>
+                s.GetRequiredService<FileSystemEntityDatabase<TIdentity, TState>>().GetAll)
+            ;
 
         return services;
     }
 
     public static IServiceCollection AddEntityDatabase<TState, TIdentity>(
         this IServiceCollection services,
-        Evolver<TState, TIdentity> evolver,
-        Action<FileSystemEntityDatabaseOptions<TState, TIdentity>>? configure = null)
+        Evolver<TIdentity, TState> evolver,
+        Action<FileSystemEntityDatabaseOptions<TIdentity, TState>>? configure = null)
         where TState : class where TIdentity : IParsable<TIdentity>
-        => services.AddEntityDatabase<TState, TIdentity>(opt =>
+        => services.AddEntityDatabase<TIdentity, TState>(opt =>
         {
             configure?.Invoke(opt);
             opt.Evolver = evolver;
@@ -39,39 +42,22 @@ public static class EntityConfiguration
         services
             .AddEntityDatabase(ConferenceDecider.Decider)
             .AddEntityDatabase(ParticipantDecider.Decider)
-            .AddTransient<Saver<ParticipantIdentity, ParticipantState>>(s =>
-                s.GetRequiredService<
-                    FileSystemEntityDatabase<ParticipantState, ParticipantIdentity>>().Save)
             .AddTransient<Saver<ParticipantIdentity, ParticipantState>>(_ =>
                 (_, _, events) =>
                 {
                     MessageBus.PublishAll(events);
                     return true;
                 })
-            .AddTransient<Saver<Guid, ConferenceState>>(s =>
-                s.GetRequiredService<FileSystemEntityDatabase<ConferenceState, Guid>>().Save)
             .AddTransient<Saver<Guid, ConferenceState>>(_ =>
                 (_, _, events) =>
                 {
                     MessageBus.PublishAll(events);
                     return true;
                 })
-            .AddTransient<Loader<Guid, ConferenceState>>(s =>
-                s.GetRequiredService<FileSystemEntityDatabase<ConferenceState, Guid>>().Find)
-            .AddTransient<Loader<ParticipantIdentity, ParticipantState>>(s =>
-                s.GetRequiredService<
-                    FileSystemEntityDatabase<ParticipantState, ParticipantIdentity>>().Find)
-            .AddTransient<Archiver<ParticipantIdentity>>(s =>
-                s.GetRequiredService<FileSystemEntityDatabase<ParticipantState, ParticipantIdentity>>().Archive)
             .AddScoped<ConferenceCommandHandler>()
             .AddScoped<ParticipantCommandHandler>()
             .AddTransient<IEventMetadataProvider, TimeStampEventMetadataProvider>()
             .AddScoped<IEventMetadataProvider, HttpContextEventMetadataProvider>();
 }
 
-public delegate TState GetEntity<out TState, in TIdentity>(TIdentity identity);
-
-public delegate TState[] GetAllEntities<out TState>();
-
-public delegate bool SaveEntity<in TState, in TIdentity>(TIdentity identity, TState state,
-    IEnumerable<object> events);
+public delegate ICollection<TState> GetAllEntities<TState>() where TState: class;

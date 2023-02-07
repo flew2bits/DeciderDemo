@@ -13,7 +13,7 @@ builder.Services.AddSingleton<MessageBus>();
 
 var app = builder.Build();
 
-app.MapGet("/Workshops/{conferenceId:guid}", (Guid conferenceId, GetEntity<ConferenceState, Guid> find) =>
+app.MapGet("/Workshops/{conferenceId:guid}", (Guid conferenceId, Loader<Guid, ConferenceState> find) =>
     Results.Json(find(conferenceId).Workshops)
 );
 

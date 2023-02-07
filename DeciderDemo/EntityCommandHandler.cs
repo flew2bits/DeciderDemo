@@ -1,7 +1,7 @@
 namespace DeciderDemo;
 
 public abstract record EntityCommandHandler<TState, TIdentity>(
-    Decider<TState, TIdentity> Decider,
+    Decider<TIdentity, TState> Decider,
     Loader<TIdentity, TState> LoadEntity,
     IEnumerable<Saver<TIdentity, TState>> EntitySavers,
     Archiver<TIdentity>? ArchiveIdentity = null

@@ -4,13 +4,13 @@ using Microsoft.Extensions.Options;
 using EventMetadata = System.Collections.Generic.Dictionary<string, object>;
 namespace DeciderDemo.Entities;
 
-public class FileSystemEntityDatabaseOptions<TState, TIdentity> where TState : class
+public class FileSystemEntityDatabaseOptions<TIdentity, TState> where TState : class
 {
     public string Prefix { get; set; } = $"{typeof(TState).Name}_";
     public string BasePath { get; set; } = "ConferenceDB";
     public string ArchivePath { get; set; } = Path.Combine("ConferenceDB", "Archive");
 
-    public Evolver<TState, TIdentity> Evolver { get; set; } = null!;
+    public Evolver<TIdentity, TState> Evolver { get; set; } = null!;
 }
 
 public abstract class FileSystemEntityDatabase
@@ -21,13 +21,13 @@ public abstract class FileSystemEntityDatabase
     protected static readonly ConcurrentDictionary<string, Type> TypeMap = new();
 }
 
-public class FileSystemEntityDatabase<TState, TIdentity> : FileSystemEntityDatabase
+public class FileSystemEntityDatabase<TIdentity, TState> : FileSystemEntityDatabase
     where TState : class where TIdentity : IParsable<TIdentity>
 
 {
-    private readonly Evolver<TState, TIdentity> _evolver;
+    private readonly Evolver<TIdentity, TState> _evolver;
 
-    public FileSystemEntityDatabase(IOptions<FileSystemEntityDatabaseOptions<TState, TIdentity>> options,
+    public FileSystemEntityDatabase(IOptions<FileSystemEntityDatabaseOptions<TIdentity, TState>> options,
         IEnumerable<IEventMetadataProvider> metadataProviders)
     {
         _evolver = options.Value.Evolver ?? throw new ArgumentException("Evolver is not defined");
@@ -35,7 +35,7 @@ public class FileSystemEntityDatabase<TState, TIdentity> : FileSystemEntityDatab
         _metadataProviders = metadataProviders.ToArray();
     }
 
-    private readonly FileSystemEntityDatabaseOptions<TState, TIdentity> _options;
+    private readonly FileSystemEntityDatabaseOptions<TIdentity, TState> _options;
     private readonly IEventMetadataProvider[] _metadataProviders;
 
     public TState[] GetAll()

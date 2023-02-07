@@ -1,17 +1,17 @@
 namespace DeciderDemo;
 
-public record Evolver<TState, TIdentity>(
+public record Evolver<TIdentity, TState>(
     Func<TState, object, TState> Evolve,
     Func<TIdentity, TState> InitialState
 ) where TState : class;
 
-public record Decider<TState, TIdentity>(
+public record Decider<TIdentity, TState>(
         Func<TState, object, IEnumerable<object>> Decide,
         Func<TState, object, TState> Evolve,
         Func<TIdentity, TState> InitialState,
         Predicate<TState> IsFinal,
         Predicate<object> IsCreator)
-    : Evolver<TState, TIdentity>(Evolve, InitialState)
+    : Evolver<TIdentity, TState>(Evolve, InitialState)
     where TState : class
 {
     public (TState, object[]) Handle(TState state, object command)

@@ -14,8 +14,8 @@ public partial class Index : PageModel
     public void OnGet([FromServices] GetAllEntities<ConferenceState> getAllConferences,
         [FromServices] GetAllEntities<ParticipantState> getAllParticipants)
     {
-        Conferences = getAllConferences();
-        Participants = getAllParticipants();
+        Conferences = getAllConferences().ToArray();
+        Participants = getAllParticipants().ToArray();
     }
 
 

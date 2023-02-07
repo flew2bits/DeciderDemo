@@ -29,7 +29,7 @@ public static class ParticipantDecider
 
     private static ParticipantState InitialState(ParticipantIdentity id) => new(id, string.Empty, string.Empty, ParticipantStatus.New);
 
-    public static readonly Decider<ParticipantState, ParticipantIdentity>
+    public static readonly Decider<ParticipantIdentity, ParticipantState>
         Decider =
             new(Decide, Evolve, InitialState, s => s.Status is ParticipantStatus.Terminated, c => c is SignupParticipant);
 }
