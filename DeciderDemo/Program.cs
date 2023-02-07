@@ -5,8 +5,9 @@ using DeciderDemo.Entities.Conference.Commands;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
-
+builder.Services.AddHttpContextAccessor();
 builder.Services.ConfigureEntities();
+
 
 builder.Services.AddSingleton<MessageBus>();
 
@@ -18,7 +19,7 @@ app.MapGet("/Workshops/{conferenceId:guid}", (Guid conferenceId, GetEntity<Confe
 
 app.MapPost("/Workshops/{conferenceId:guid}/remove/{id}", (Guid conferenceId, string id, ConferenceCommandHandler commandHandler) =>
 {
-    commandHandler.HandleCommand(conferenceId, RemoveWorkshopFromConference.From(id, "tander3"));
+    commandHandler.HandleCommand(conferenceId, RemoveWorkshopFromConference.From(id));
     return Results.Redirect("/");
 });
 

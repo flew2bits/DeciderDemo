@@ -5,8 +5,7 @@ namespace DeciderDemo.Entities.Participant;
 
 public record
     ParticipantCommandHandler(Loader<ParticipantIdentity, ParticipantState> LoadEntity,
-        IEnumerable<Saver<ParticipantIdentity, ParticipantState, IParticipantEvent>> EntitySavers,
+        IEnumerable<Saver<ParticipantIdentity, ParticipantState>> EntitySavers,
         Archiver<ParticipantIdentity> Archiver) : EntityCommandHandler<
-        ParticipantState, ParticipantIdentity, IParticipantCommand,
-        IParticipantEvent>(ParticipantDecider.Decider,
+        ParticipantState, ParticipantIdentity, IParticipantCommand>(ParticipantDecider.Decider,
         LoadEntity, EntitySavers, Archiver);

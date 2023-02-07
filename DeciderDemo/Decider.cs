@@ -1,22 +1,21 @@
 namespace DeciderDemo;
 
-public record Evolver<TState, TIdentity, TEvent>(
-    Func<TState, TEvent, TState> Evolve,
+public record Evolver<TState, TIdentity>(
+    Func<TState, object, TState> Evolve,
     Func<TIdentity, TState> InitialState
-) where TState : class where TEvent : class;
+) where TState : class;
 
-public record Decider<TState, TIdentity, TCommand, TEvent>(
-        Func<TState, TCommand, IEnumerable<TEvent>> Decide,
-        Func<TState, TEvent, TState> Evolve,
+public record Decider<TState, TIdentity, TCommand>(
+        Func<TState, TCommand, IEnumerable<object>> Decide,
+        Func<TState, object, TState> Evolve,
         Func<TIdentity, TState> InitialState,
         Predicate<TState> IsFinal,
         Predicate<TCommand> IsCreator)
-    : Evolver<TState, TIdentity, TEvent>(Evolve, InitialState)
+    : Evolver<TState, TIdentity>(Evolve, InitialState)
     where TState : class
     where TCommand : class
-    where TEvent : class
 {
-    public (TState, TEvent[]) Handle(TState state, TCommand command)
+    public (TState, object[]) Handle(TState state, TCommand command)
     {
         ArgumentNullException.ThrowIfNull(state);
         ArgumentNullException.ThrowIfNull(command);

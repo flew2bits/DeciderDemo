@@ -18,7 +18,7 @@ public static class ParticipantDecider
             _ => Array.Empty<IParticipantEvent>()
         };
 
-    private static ParticipantState Evolve(ParticipantState state, IParticipantEvent @event) =>
+    private static ParticipantState Evolve(ParticipantState state, object @event) =>
         @event switch
         {
             ParticipantSignedUp psu => state with { FirstName = psu.FirstName, LastName = psu.LastName },
@@ -29,7 +29,7 @@ public static class ParticipantDecider
 
     private static ParticipantState InitialState(ParticipantIdentity id) => new(id, string.Empty, string.Empty, ParticipantStatus.New);
 
-    public static readonly Decider<ParticipantState, ParticipantIdentity, IParticipantCommand, IParticipantEvent>
+    public static readonly Decider<ParticipantState, ParticipantIdentity, IParticipantCommand>
         Decider =
             new(Decide, Evolve, InitialState, s => s.Status is ParticipantStatus.Terminated, c => c is SignupParticipant);
 }

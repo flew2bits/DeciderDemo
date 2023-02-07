@@ -6,35 +6,35 @@ namespace DeciderDemo.Entities.Conference;
 
 public static class ConferenceDecider
 {
-    private static IConferenceEvent[] Decide(ConferenceState state, IConferenceCommand command) =>
+    private static object[] Decide(ConferenceState state, IConferenceCommand command) =>
         command switch
         {
-            StartConference sc => new IConferenceEvent[]
-                { ConferenceStarted.From(state.ConferenceId, sc.ConferenceName, sc.StartDate, sc.EndDate, sc.User) },
+            StartConference sc => new object[]
+                { ConferenceStarted.From(state.ConferenceId, sc.ConferenceName, sc.StartDate, sc.EndDate) },
             IWorkshopCommand workshopCommand => Decide(state, workshopCommand),
 
-            _ => Array.Empty<IConferenceEvent>()
+            _ => Array.Empty<object>()
         };
 
-    private static IConferenceEvent[] Decide(ConferenceState state, IWorkshopCommand workshopCommand) =>
+    private static object[] Decide(ConferenceState state, IWorkshopCommand workshopCommand) =>
         workshopCommand switch
         {
             AddWorkshopToConference add => state.CanAddWorkshopToConference(add.Id, add.Date, add.Start, add.End,
                 add.Location, add.Facilitator, out var failures)
-                ? new IConferenceEvent[]
+                ? new object[]
                 {
                     WorkshopAddedToConference.From(state.ConferenceId, add)
                 }
-                : new IConferenceEvent[]
+                : new object[]
                 {
                     WorkshopNotAddedToConference.From(state.ConferenceId, add, failures),
                 },
-            RemoveWorkshopFromConference remove => new IConferenceEvent[]
-                { WorkshopRemovedFromConference.From(state.ConferenceId, remove.Id, remove.User) },
-            _ => Array.Empty<IConferenceEvent>()
+            RemoveWorkshopFromConference remove => new object[]
+                { WorkshopRemovedFromConference.From(state.ConferenceId, remove.Id) },
+            _ => Array.Empty<object>()
         };
 
-    private static ConferenceState Evolve(ConferenceState state, IConferenceEvent @event) =>
+    private static ConferenceState Evolve(ConferenceState state, object @event) =>
         @event switch
         {
             ConferenceStarted x => state with
@@ -60,6 +60,6 @@ public static class ConferenceDecider
 
     private static bool IsCreator(IConferenceCommand c) => c is StartConference;
 
-    public static readonly Decider<ConferenceState, Guid, IConferenceCommand, IConferenceEvent> Decider =
+    public static readonly Decider<ConferenceState, Guid, IConferenceCommand> Decider =
         new(Decide, Evolve, InitialState, IsTerminal, IsCreator);
 }
