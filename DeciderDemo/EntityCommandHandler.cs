@@ -8,28 +8,28 @@ public abstract record EntityCommandHandler<TIdentity, TState>(
 )
     where TState : class
 {
-    private bool TryLoad(TIdentity identity, out TState? state)
+    private async Task<TState?> TryLoad(TIdentity identity)
     {
-        state = null;
-        
         try
         {
-            state = LoadEntity(identity);
+            return await LoadEntity(identity);
         }
         catch
         {
-            return false;
+            // ignored
         }
 
-        return true;
+        return null;
     }
     
-    public (TState, IEnumerable<object>) HandleCommand(TIdentity identity, object command)
+    public async Task<(TState, IEnumerable<object>)> HandleCommand(TIdentity identity, object command)
     {
-        var state = (TryLoad(identity, out var s), Decider.IsCreator(command)) switch
+        var maybeState = await TryLoad(identity);
+        
+        var state = (maybeState is not null, Decider.IsCreator(command)) switch
         {
             (false, true) => Decider.InitialState(identity),
-            (true, false) => s!,
+            (true, false) => maybeState!,
             (true, true) => throw new InvalidOperationException("An entity with the given id already exists"),
             (false, false) => throw new InvalidOperationException("Could not find the entity with the given id")
         };
@@ -41,7 +41,7 @@ public abstract record EntityCommandHandler<TIdentity, TState>(
         
         foreach (var saver in EntitySavers)
         {
-            if (!saver(identity, newState, events)) break;
+            if (!await saver(identity, newState, events)) break;
         }
 
         if (Decider.IsFinal(newState))
@@ -52,9 +52,9 @@ public abstract record EntityCommandHandler<TIdentity, TState>(
     }
 }
 
-public delegate TState Loader<in TIdentifier, out TState>(TIdentifier id) where TState : class;
+public delegate Task<TState> Loader<in TIdentifier, TState>(TIdentifier id) where TState : class;
 
-public delegate bool Saver<in TIdentifier, in TState>(TIdentifier id, TState state,
+public delegate Task<bool> Saver<in TIdentifier, in TState>(TIdentifier id, TState state,
     IEnumerable<object> events)
     where TState : class;
 

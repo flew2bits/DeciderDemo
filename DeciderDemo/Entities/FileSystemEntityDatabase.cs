@@ -38,32 +38,32 @@ public class FileSystemEntityDatabase<TIdentity, TState> : FileSystemEntityDatab
     private readonly FileSystemEntityDatabaseOptions<TIdentity, TState> _options;
     private readonly IEventMetadataProvider[] _metadataProviders;
 
-    public TState[] GetAll()
+    public async Task<ICollection<TState>> GetAll()
     {
         var files = Directory.EnumerateFiles(_options.BasePath, $"{_options.Prefix}*.json");
         var ids = files.Select(f => f[(_options.BasePath.Length + 1 + _options.Prefix.Length)..^5])
             .Select(i => TIdentity.Parse(i, null));
-        return ids.Select(Find).ToArray();
+        return await ids.ToAsyncEnumerable().SelectAwait(async x => await Find(x)).ToArrayAsync();
     }
 
     private string StreamPath(TIdentity id) => Path.Combine(_options.BasePath, $"{_options.Prefix}{id}.jsonstream");
     private string StatePath(TIdentity id) => Path.Combine(_options.BasePath, $"{_options.Prefix}{id}.json");
     
-    public TState Find(TIdentity id) =>
-        _evolver != null ? HydrateState(_evolver!, id) : LoadFromState(id);
+    public async Task<TState> Find(TIdentity id) =>
+        await (_evolver != null ? HydrateState(_evolver!, id) : LoadFromState(id));
 
-    private TState LoadFromState(TIdentity id) =>
-        JsonSerializer.Deserialize<TState>(File.ReadAllText(StatePath(id))) 
+    private async Task<TState> LoadFromState(TIdentity id) =>
+        JsonSerializer.Deserialize<TState>(await File.ReadAllTextAsync(StatePath(id))) 
         ?? throw new InvalidOperationException("Could not deserialize state");
 
-    private TState HydrateState(Evolver<TIdentity, TState> evolver, TIdentity id)
-        => LoadEventStream(id).Aggregate(evolver.InitialState(id), evolver.Evolve);
+    private async Task<TState> HydrateState(Evolver<TIdentity, TState> evolver, TIdentity id)
+        => await LoadEventStream(id).AggregateAsync(evolver.InitialState(id), evolver.Evolve);
 
-    private IEnumerable<object> LoadEventStream(TIdentity id)
+    private async IAsyncEnumerable<object> LoadEventStream(TIdentity id)
     {
         var path = StreamPath(id);
         if (!File.Exists(path)) throw new InvalidOperationException("Could not find entity");
-        var events = File.ReadAllLines(path);
+        var events = await File.ReadAllLinesAsync(path);
         foreach (var linePair in events.Chunk(2))
         {
             var eventMetadata = JsonSerializer.Deserialize<EventMetadata>(linePair.First());
@@ -89,7 +89,7 @@ public class FileSystemEntityDatabase<TIdentity, TState> : FileSystemEntityDatab
         }
     }
     
-    public bool Save(TIdentity id, TState state, IEnumerable<object> events)
+    public async Task<bool> Save(TIdentity id, TState state, IEnumerable<object> events)
     {
         try
         {
@@ -100,8 +100,8 @@ public class FileSystemEntityDatabase<TIdentity, TState> : FileSystemEntityDatab
                 .SelectMany(p => p.GetValues().Select(v => (Key: $"{p.Category}_{v.Key}", v.Value)))
                 .ToArray();
 
-            File.WriteAllText(path, JsonSerializer.Serialize(state, SerializerOptions));
-            File.AppendAllLines(streamPath,
+            await File.WriteAllTextAsync(path, JsonSerializer.Serialize(state, SerializerOptions));
+            await File.AppendAllLinesAsync(streamPath,
                 events.Select(e =>
                     $"{JsonSerializer.Serialize(metadata.Append(("$type", e.GetType().FullName!)).ToDictionary(k => k.Key, v => v.Value))}\n{JsonSerializer.Serialize((object)e)}"));
         }

@@ -11,10 +11,10 @@ public partial class Index : PageModel
     public ConferenceState[] Conferences = Array.Empty<ConferenceState>();
     public ParticipantState[] Participants = Array.Empty<ParticipantState>();
 
-    public void OnGet([FromServices] GetAllEntities<ConferenceState> getAllConferences,
+    public async Task OnGet([FromServices] GetAllEntities<ConferenceState> getAllConferences,
         [FromServices] GetAllEntities<ParticipantState> getAllParticipants)
     {
-        Conferences = getAllConferences().ToArray();
-        Participants = getAllParticipants().ToArray();
+        Conferences = (await getAllConferences()).ToArray();
+        Participants = (await getAllParticipants()).ToArray();
     }
 }

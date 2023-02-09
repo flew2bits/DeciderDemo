@@ -42,16 +42,16 @@ public static class EntityConfiguration
         services
             .AddEntityDatabase(ConferenceDecider.Decider)
             .AddEntityDatabase<ParticipantState, ParticipantIdentity>() //ParticipantDecider.Decider)
-            .AddTransient<Saver<ParticipantIdentity, ParticipantState>>(_ =>
-                (_, _, events) =>
+            .AddTransient<Saver<ParticipantIdentity, ParticipantState>>(svc =>
+                async (_, _, events) =>
                 {
-                    MessageBus.PublishAll(events);
+                    await svc.GetRequiredService<MessageBus>().PublishAll(events);
                     return true;
                 })
-            .AddTransient<Saver<Guid, ConferenceState>>(_ =>
-                (_, _, events) =>
+            .AddTransient<Saver<Guid, ConferenceState>>(svc =>
+                async (_, _, events) =>
                 {
-                    MessageBus.PublishAll(events);
+                    await svc.GetRequiredService<MessageBus>().PublishAll(events);
                     return true;
                 })
             .AddScoped<ConferenceCommandHandler>()
@@ -60,4 +60,4 @@ public static class EntityConfiguration
             .AddScoped<IEventMetadataProvider, HttpContextEventMetadataProvider>();
 }
 
-public delegate ICollection<TState> GetAllEntities<TState>() where TState: class;
+public delegate Task<ICollection<TState>> GetAllEntities<TState>() where TState: class;

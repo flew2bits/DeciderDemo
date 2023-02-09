@@ -25,17 +25,27 @@ public static class ConferenceDecider
                 add.Location, add.Facilitator, out var failures)
                 ? Events(WorkshopAddedToConference.From(state.ConferenceId, add))
                 : Events(WorkshopNotAddedToConference.From(state.ConferenceId, add, failures)),
+            
             RemoveWorkshopFromConference remove => Events(
                 WorkshopRemovedFromConference.From(state.ConferenceId, remove)),
+            
             ReserveWorkshopSeat reserve => state.Workshops.CanReserveSeatForWorkshopParticipant(reserve.Id,
                 reserve.UserName, out var failures)
                 ? Events(WorkshopSeatReserved.From(state.ConferenceId, reserve))
                 : Events(WorkshopSeatNotReserved.From(state.ConferenceId, reserve, failures)),
+            
             ReleaseWorkshopSeat release => state.TryGetWorkshopById(release.WorkshopId, out var workshop)
                 ? workshop!.Reservations.Any(r => r.UserName == release.UserName)
                     ? Events(WorkshopSeatReleased.From(state.ConferenceId, release))
                     : Events(WorkshopSeatNotReleased.From(state.ConferenceId, release, "Participant not registered for workshop"))
                 : Events(WorkshopSeatNotReleased.From(state.ConferenceId, release, "Workshop does not exist")),
+            
+            RemoveWorkshopSeat remove => 
+                state.TryGetWorkshopById(remove.WorkshopId, out var workshop)
+                ? workshop!.Reservations.Any(r => r.UserName == remove.UserName)
+                    ? Events(WorkshopSeatRemoved.From(state.ConferenceId, remove))
+                    : Events(WorkshopSeatNotRemoved.From(state.ConferenceId, remove, "Participant not registered for workshop"))
+                : Events(WorkshopSeatNotRemoved.From(state.ConferenceId, remove, "Workshop does not exist")),
             _ => NoEvents
         };
 
@@ -60,6 +70,14 @@ public static class ConferenceDecider
                 Workshops = state.Workshops
                     .Select(w => w.Id == r.Id
                         ? w with { Reservations = w.Reservations.Append(new WorkshopReservation(r.UserName)).ToArray() }
+                        : w)
+                    .ToArray()
+            },
+            WorkshopSeatRemoved rem => state with
+            {
+                Workshops = state.Workshops
+                    .Select(w => w.Id == rem.WorkshopId
+                        ? w with { Reservations = w.Reservations.Where(r => rem.UserName != r.UserName ).ToArray() }
                         : w)
                     .ToArray()
             },

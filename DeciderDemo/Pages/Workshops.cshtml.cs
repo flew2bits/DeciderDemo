@@ -17,12 +17,12 @@ public class Workshops : PageModel
 
     public ParticipantState[] UserNames { get; set; } = Array.Empty<ParticipantState>();
 
-    public IActionResult OnGet([FromServices] Loader<Guid, ConferenceState> loader, [FromServices] GetAllEntities<ParticipantState> getParticipants)
+    public async Task<IActionResult> OnGet([FromServices] Loader<Guid, ConferenceState> loader, [FromServices] GetAllEntities<ParticipantState> getParticipants)
     {
         try
         {
-            WorkshopList = loader(ConferenceId).Workshops;
-            UserNames = getParticipants().ToArray();
+            WorkshopList = (await loader(ConferenceId)).Workshops;
+            UserNames = (await getParticipants()).ToArray();
         }
         catch
         {
@@ -32,7 +32,7 @@ public class Workshops : PageModel
         return Page();
     }
 
-    public IActionResult OnPostReserveWorkshopSeat(string workshopId, string participantId,
+    public async Task<IActionResult> OnPostReserveWorkshopSeat(string workshopId, string participantId,
         [FromServices] Loader<ParticipantIdentity, ParticipantState> loader,
         [FromServices] ConferenceCommandHandler commandHandler)
     {
@@ -45,13 +45,14 @@ public class Workshops : PageModel
             return BadRequest(@$"Couldn't load participant with id ""{participantId}""");
         }
 
-        var (_, events) = commandHandler.HandleCommand(ConferenceId, new ReserveWorkshopSeat(workshopId, participantId));
+        var (_, events) = await commandHandler.HandleCommand(ConferenceId, new ReserveWorkshopSeat(workshopId, participantId));
 
         if (events.SingleOrDefault() is WorkshopSeatNotReserved e)
         {
             TempData["Message"] = e.Reason;
         }
 
+        TempData["Events"] = this.SerializeEvents(HttpContext.StoredEvents());
         return RedirectToPage();
     }
 }

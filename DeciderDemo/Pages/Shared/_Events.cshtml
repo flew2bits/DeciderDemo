@@ -1,0 +1,18 @@
+@using System.Text.Json
+@if (TempData["Events"] != null)
+{
+    var events = TempData["Events"] as IEnumerable<string>;
+
+    if (events != null)
+    {
+        <div class="bg-dark text-light rounded p-4 mb-4">
+            <h4>Events</h4>
+            @foreach (var @event in events)
+            {
+                <pre class="mb-2">
+@(@event)
+</pre>
+            }
+        </div>
+    }
+}

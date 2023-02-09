@@ -34,5 +34,5 @@ public static class ConferenceStateExtensions
     }
 
     public static bool TryGetWorkshopById(this ConferenceState state, string workshopId, out Workshop? workshop)
-        => (workshop = state.Workshops.SingleOrDefault(w => w.Id == workshopId)) is null;
+        => (workshop = state.Workshops.SingleOrDefault(w => w.Id == workshopId)) is not null;
 }

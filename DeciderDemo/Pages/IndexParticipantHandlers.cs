@@ -6,34 +6,40 @@ namespace DeciderDemo.Pages;
 
 public partial class Index
 {
-    public IActionResult OnPostAddParticipant(string userName, string firstName, string lastName, [FromServices] ParticipantCommandHandler commandHandler)
+    public async Task<IActionResult> OnPostAddParticipant(string userName, string firstName, string lastName, [FromServices] ParticipantCommandHandler commandHandler)
     {
         if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(firstName) || string.IsNullOrEmpty(lastName))
         {
             return RedirectToPage();
         }
 
-        commandHandler.HandleCommand(userName, new SignupParticipant(firstName, lastName));
+        var (_, events) = await commandHandler.HandleCommand(userName, new SignupParticipant(firstName, lastName));
+
+        TempData["Events"] = this.SerializeEvents(HttpContext.StoredEvents());
 
         return RedirectToPage();
     }
 
-    public IActionResult OnPostApproveParticipant(string userName,
+    public async Task<IActionResult> OnPostApproveParticipant(string userName,
         [FromServices] ParticipantCommandHandler commandHandler)
     {
         if (string.IsNullOrEmpty(userName)) return RedirectToPage();
-        commandHandler.HandleCommand(userName, ApproveParticipant.Instance);
+        var (_, events) = await commandHandler.HandleCommand(userName, ApproveParticipant.Instance);
+
+        TempData["Events"] = this.SerializeEvents(HttpContext.StoredEvents());
 
         return RedirectToPage();
     }
 
-    public IActionResult OnPostRemoveParticipant(string userName, string reason,
+    public async Task<IActionResult> OnPostRemoveParticipant(string userName, string reason,
         [FromServices] ParticipantCommandHandler commandHandler)
     {
         if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(reason))
             return RedirectToPage();
 
-        commandHandler.HandleCommand(userName, new RemoveParticipant(reason));
+        var (_, events) = await commandHandler.HandleCommand(userName, new RemoveParticipant(reason));
+
+        TempData["Events"] = this.SerializeEvents(HttpContext.StoredEvents());
 
         return RedirectToPage();
     }

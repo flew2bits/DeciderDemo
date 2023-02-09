@@ -7,21 +7,22 @@ namespace DeciderDemo.Pages;
 
 public partial class Index
 {
-    public IActionResult OnPostAddConference(string? conferenceName, DateTime? conferenceStart, DateTime? conferenceEnd,
+    public async Task<IActionResult> OnPostAddConference(string? conferenceName, DateTime? conferenceStart, DateTime? conferenceEnd,
         [FromServices] ConferenceCommandHandler commandHandler)
     {
-        if (!string.IsNullOrEmpty(conferenceName) && conferenceStart.HasValue && conferenceEnd.HasValue &&
-            conferenceStart <= conferenceEnd)
-        {
-            commandHandler.HandleCommand(Guid.NewGuid(),
-                StartConference.From(conferenceName, DateOnly.FromDateTime(conferenceStart.Value),
-                    DateOnly.FromDateTime(conferenceEnd.Value)));
-        }
+        if (string.IsNullOrEmpty(conferenceName) || !conferenceStart.HasValue || !conferenceEnd.HasValue ||
+            !(conferenceStart <= conferenceEnd)) return RedirectToPage();
+        
+        var (_, events) = await commandHandler.HandleCommand(Guid.NewGuid(),
+            StartConference.From(conferenceName, DateOnly.FromDateTime(conferenceStart.Value),
+                DateOnly.FromDateTime(conferenceEnd.Value)));
+
+        TempData["Events"] = this.SerializeEvents(HttpContext.StoredEvents());
 
         return RedirectToPage();
     }
 
-    public IActionResult OnPostAddWorkshopToConference(Guid? workshopConferenceId, string? workshopName,
+    public async Task<IActionResult> OnPostAddWorkshopToConference(Guid? workshopConferenceId, string? workshopName,
         string? workshopId,
         DateTime? workshopDate, DateTime? workshopStart, DateTime? workshopEnd, string? workshopLocation,
         string? workshopFacilitator,
@@ -36,7 +37,7 @@ public partial class Index
         if (workshopCapacity.Value <= 0) return RedirectToPage();
         if (workshopStart.Value.TimeOfDay > workshopEnd.Value.TimeOfDay) return RedirectToPage();
 
-        var (_, events) = commandHandler.HandleCommand(workshopConferenceId.Value, AddWorkshopToConference.From(workshopId,
+        var (_, events) = await commandHandler.HandleCommand(workshopConferenceId.Value, AddWorkshopToConference.From(workshopId,
             workshopName,
             DateOnly.FromDateTime(workshopDate.Value), TimeOnly.FromDateTime(workshopStart.Value),
             TimeOnly.FromDateTime(workshopEnd.Value),
@@ -47,6 +48,8 @@ public partial class Index
             TempData["Message"] = $"Workshop not added: {notAdded.Reason}";
         }
 
+        TempData["Events"] = this.SerializeEvents(HttpContext.StoredEvents());
+        
         return RedirectToPage();
     }
 }
