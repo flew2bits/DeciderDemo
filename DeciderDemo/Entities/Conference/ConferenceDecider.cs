@@ -8,11 +8,11 @@ public static class ConferenceDecider
 {
     private static object[] Events(params object[] events) => events;
     private static readonly object[] NoEvents = Array.Empty<object>();
-    
+
     private static object[] Decide(ConferenceState state, object command) =>
         command switch
         {
-            StartConference sc => Events(ConferenceStarted.From(state.ConferenceId, sc.ConferenceName, sc.StartDate, sc.EndDate)),
+            StartConference sc => Events(ConferenceStarted.From(state.ConferenceId, sc)),
             IWorkshopCommand workshopCommand => Decide(state, workshopCommand),
 
             _ => NoEvents
@@ -25,10 +25,17 @@ public static class ConferenceDecider
                 add.Location, add.Facilitator, out var failures)
                 ? Events(WorkshopAddedToConference.From(state.ConferenceId, add))
                 : Events(WorkshopNotAddedToConference.From(state.ConferenceId, add, failures)),
-            RemoveWorkshopFromConference remove => Events(WorkshopRemovedFromConference.From(state.ConferenceId, remove.Id)),
-            ReserveWorkshopSeat reserve => state.Workshops.CanReserveSeatForWorkshopParticipant(reserve.Id, reserve.UserName, out var failures)
-            ? Events(new WorkshopSeatReserved(state.ConferenceId, reserve.Id, reserve.UserName))
-            : Events(new WorkshopSeatNotReserved(state.ConferenceId, reserve.Id, reserve.UserName, failures)),
+            RemoveWorkshopFromConference remove => Events(
+                WorkshopRemovedFromConference.From(state.ConferenceId, remove)),
+            ReserveWorkshopSeat reserve => state.Workshops.CanReserveSeatForWorkshopParticipant(reserve.Id,
+                reserve.UserName, out var failures)
+                ? Events(WorkshopSeatReserved.From(state.ConferenceId, reserve))
+                : Events(WorkshopSeatNotReserved.From(state.ConferenceId, reserve, failures)),
+            ReleaseWorkshopSeat release => state.TryGetWorkshopById(release.WorkshopId, out var workshop)
+                ? workshop!.Reservations.Any(r => r.UserName == release.UserName)
+                    ? Events(WorkshopSeatReleased.From(state.ConferenceId, release))
+                    : Events(WorkshopSeatNotReleased.From(state.ConferenceId, release, "Participant not registered for workshop"))
+                : Events(WorkshopSeatNotReleased.From(state.ConferenceId, release, "Workshop does not exist")),
             _ => NoEvents
         };
 
@@ -51,8 +58,8 @@ public static class ConferenceDecider
             WorkshopSeatReserved r => state with
             {
                 Workshops = state.Workshops
-                    .Select(w => w.Id == r.Id 
-                        ? w with {Reservations = w.Reservations.Append(new WorkshopReservation(r.UserName)).ToArray()}
+                    .Select(w => w.Id == r.Id
+                        ? w with { Reservations = w.Reservations.Append(new WorkshopReservation(r.UserName)).ToArray() }
                         : w)
                     .ToArray()
             },

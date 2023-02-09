@@ -1,3 +1,5 @@
+using DeciderDemo.Entities.Conference.Values;
+
 namespace DeciderDemo.Entities.Conference;
 
 public static class ConferenceStateExtensions
@@ -30,4 +32,7 @@ public static class ConferenceStateExtensions
         
         return !failures.Any();
     }
+
+    public static bool TryGetWorkshopById(this ConferenceState state, string workshopId, out Workshop? workshop)
+        => (workshop = state.Workshops.SingleOrDefault(w => w.Id == workshopId)) is null;
 }

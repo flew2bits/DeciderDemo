@@ -1,6 +1,6 @@
 namespace DeciderDemo;
 
-public abstract record EntityCommandHandler<TState, TIdentity>(
+public abstract record EntityCommandHandler<TIdentity, TState>(
     Decider<TIdentity, TState> Decider,
     Loader<TIdentity, TState> LoadEntity,
     IEnumerable<Saver<TIdentity, TState>> EntitySavers,

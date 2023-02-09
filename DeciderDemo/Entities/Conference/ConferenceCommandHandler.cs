@@ -8,5 +8,5 @@ namespace DeciderDemo.Entities.Conference;
 public record
     ConferenceCommandHandler(Loader<Guid, ConferenceState> LoadEntity,
         IEnumerable<Saver<Guid, ConferenceState>> EntitySavers) :
-        EntityCommandHandler<ConferenceState, Guid>(ConferenceDecider.Decider,
-            LoadEntity, EntitySavers);
+        EntityCommandHandler<Guid, ConferenceState>(
+            ConferenceDecider.Decider, LoadEntity, EntitySavers);

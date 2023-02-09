@@ -29,7 +29,7 @@ public static class EntityConfiguration
 
     public static IServiceCollection AddEntityDatabase<TState, TIdentity>(
         this IServiceCollection services,
-        Evolver<TIdentity, TState> evolver,
+        Evolver<TIdentity, TState>? evolver = null,
         Action<FileSystemEntityDatabaseOptions<TIdentity, TState>>? configure = null)
         where TState : class where TIdentity : IParsable<TIdentity>
         => services.AddEntityDatabase<TIdentity, TState>(opt =>
@@ -41,7 +41,7 @@ public static class EntityConfiguration
     public static IServiceCollection ConfigureEntities(this IServiceCollection services) =>
         services
             .AddEntityDatabase(ConferenceDecider.Decider)
-            .AddEntityDatabase(ParticipantDecider.Decider)
+            .AddEntityDatabase<ParticipantState, ParticipantIdentity>() //ParticipantDecider.Decider)
             .AddTransient<Saver<ParticipantIdentity, ParticipantState>>(_ =>
                 (_, _, events) =>
                 {
