@@ -15,23 +15,25 @@ public class MessageBus
     private readonly GetAllEntities<ConferenceState> _getAllConferences;
     private readonly ConferenceCommandHandler _conferenceCommandHandler;
     private readonly IHttpContextAccessor _contextAccessor;
+    private readonly ILogger<MessageBus> _logger;
 
     public static readonly JsonSerializerOptions SerializerOptions = new()
         { Converters = { new DateOnlyJsonConverter(), new TimeOnlyJsonConverter() } };
 
     public MessageBus(GetAllEntities<ConferenceState> getAllConferences, 
         ConferenceCommandHandler conferenceCommandHandler,
-        IHttpContextAccessor contextAccessor)
+        IHttpContextAccessor contextAccessor, ILogger<MessageBus> logger)
     {
         _getAllConferences = getAllConferences;
         _conferenceCommandHandler = conferenceCommandHandler;
         _contextAccessor = contextAccessor;
+        _logger = logger;
     }
 
     public async Task Publish(object @event)
     {
-        Console.WriteLine($"Event of type {@event.GetType().Name} was published");
-        Console.WriteLine($"\t{JsonSerializer.Serialize(@event, SerializerOptions)}");
+        _logger.LogDebug("Event of type {Type} was published", @event.GetType().Name);
+        _logger.LogDebug("Payload: {Payload}", JsonSerializer.Serialize(@event, SerializerOptions));
 
         var httpContext = _contextAccessor.HttpContext;
         httpContext?.AddStoredEvent(@event);
