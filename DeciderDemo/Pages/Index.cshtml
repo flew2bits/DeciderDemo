@@ -1,5 +1,6 @@
 @page
 @using System.Text.Json
+@using DateOnlyTimeOnly.AspNet.Converters
 @using DeciderDemo.Entities.Participant
 @using Microsoft.AspNetCore.Mvc.TagHelpers
 @model DeciderDemo.Pages.Index
@@ -96,7 +97,14 @@ else
 
 <div class="collapse" id="debugInfo">
     <div class="card card-content">
-        <pre>@JsonSerializer.Serialize(new { Model.Participants, Model.Conferences }, new JsonSerializerOptions { WriteIndented = true })</pre>
+        <pre>@(JsonSerializer.Serialize(new { Model.Participants, Model.Conferences }, 
+                 new JsonSerializerOptions { 
+                     WriteIndented = true, 
+                     Converters =
+                     {
+                         new DateOnlyJsonConverter(), new TimeOnlyJsonConverter()
+                     
+                     }}))</pre>
     </div>
 </div>
 

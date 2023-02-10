@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Text.Json;
+using DateOnlyTimeOnly.AspNet.Converters;
 using Microsoft.Extensions.Options;
 using EventMetadata = System.Collections.Generic.Dictionary<string, object>;
 namespace DeciderDemo.Entities;
@@ -22,27 +23,58 @@ public abstract class FileSystemEntityDatabase
 }
 
 public class FileSystemEntityDatabase<TIdentity, TState> : FileSystemEntityDatabase
-    where TState : class where TIdentity : IParsable<TIdentity>
+    where TState : class
+#if NET7_0_OR_GREATER
+    where TIdentity : IParsable<TIdentity>
+#endif
 
 {
     private readonly Evolver<TIdentity, TState>? _evolver;
+    private readonly JsonSerializerOptions _serializerOptions;
 
+    #if !NET7_0_OR_GREATER
+    private readonly Parser<TIdentity> _parser;
+    #endif
+    
     public FileSystemEntityDatabase(IOptions<FileSystemEntityDatabaseOptions<TIdentity, TState>> options,
-        IEnumerable<IEventMetadataProvider> metadataProviders)
+        IEnumerable<IEventMetadataProvider> metadataProviders
+        #if !NET7_0_OR_GREATER
+        , Parser<TIdentity> parser
+        #endif
+        )
     {
         _evolver = options.Value.Evolver;
         _options = options.Value ?? throw new ArgumentNullException(nameof(options));
         _metadataProviders = metadataProviders.ToArray();
+        _serializerOptions = new JsonSerializerOptions()
+#if !NET7_0_OR_GREATER
+            {
+                Converters = { new DateOnlyJsonConverter(), new TimeOnlyJsonConverter() }
+            }
+#endif
+            ;
+        #if !NET7_0_OR_GREATER
+        _parser = parser ?? throw new ArgumentNullException(nameof(parser));
+        #endif
     }
 
     private readonly FileSystemEntityDatabaseOptions<TIdentity, TState> _options;
     private readonly IEventMetadataProvider[] _metadataProviders;
 
+    
+    
     public async Task<ICollection<TState>> GetAll()
     {
+        var parser =
+#if NET7_0
+            TIdentity.Parse;
+#else
+            _parser.Parse;
+#endif
+        
         var files = Directory.EnumerateFiles(_options.BasePath, $"{_options.Prefix}*.json");
         var ids = files.Select(f => f[(_options.BasePath.Length + 1 + _options.Prefix.Length)..^5])
-            .Select(i => TIdentity.Parse(i, null));
+            .Select(i => parser(i, null));
         return await ids.ToAsyncEnumerable().SelectAwait(async x => await Find(x)).ToArrayAsync();
     }
 
@@ -53,7 +85,7 @@ public class FileSystemEntityDatabase<TIdentity, TState> : FileSystemEntityDatab
         await (_evolver != null ? HydrateState(_evolver!, id) : LoadFromState(id));
 
     private async Task<TState> LoadFromState(TIdentity id) =>
-        JsonSerializer.Deserialize<TState>(await File.ReadAllTextAsync(StatePath(id))) 
+        JsonSerializer.Deserialize<TState>(await File.ReadAllTextAsync(StatePath(id)), _serializerOptions) 
         ?? throw new InvalidOperationException("Could not deserialize state");
 
     private async Task<TState> HydrateState(Evolver<TIdentity, TState> evolver, TIdentity id)
@@ -66,7 +98,7 @@ public class FileSystemEntityDatabase<TIdentity, TState> : FileSystemEntityDatab
         var events = await File.ReadAllLinesAsync(path);
         foreach (var linePair in events.Chunk(2))
         {
-            var eventMetadata = JsonSerializer.Deserialize<EventMetadata>(linePair.First());
+            var eventMetadata = JsonSerializer.Deserialize<EventMetadata>(linePair.First(), _serializerOptions);
             if (eventMetadata is null) throw new InvalidOperationException("Could not parse event");
 
             if (!eventMetadata.TryGetValue("$type", out var typeName))
@@ -82,7 +114,7 @@ public class FileSystemEntityDatabase<TIdentity, TState> : FileSystemEntityDatab
 
             if (type is null) throw new InvalidOperationException("Could not find type");
 
-            if (JsonSerializer.Deserialize(linePair.Last(), type) is not { } @event)
+            if (JsonSerializer.Deserialize(linePair.Last(), type, _serializerOptions) is not { } @event)
                 throw new InvalidOperationException("Could not parse type");
 
             yield return @event;
@@ -100,10 +132,10 @@ public class FileSystemEntityDatabase<TIdentity, TState> : FileSystemEntityDatab
                 .SelectMany(p => p.GetValues().Select(v => (Key: $"{p.Category}_{v.Key}", v.Value)))
                 .ToArray();
 
-            await File.WriteAllTextAsync(path, JsonSerializer.Serialize(state, SerializerOptions));
+            await File.WriteAllTextAsync(path, JsonSerializer.Serialize(state, _serializerOptions));
             await File.AppendAllLinesAsync(streamPath,
                 events.Select(e =>
-                    $"{JsonSerializer.Serialize(metadata.Append(("$type", e.GetType().FullName!)).ToDictionary(k => k.Key, v => v.Value))}\n{JsonSerializer.Serialize((object)e)}"));
+                    $"{JsonSerializer.Serialize(metadata.Append(("$type", e.GetType().FullName!)).ToDictionary(k => k.Key, v => v.Value), _serializerOptions)}\n{JsonSerializer.Serialize(e, _serializerOptions)}"));
         }
         catch
         {

@@ -1,6 +1,9 @@
 ﻿namespace DeciderDemo.Entities.Participant;
 
-public record ParticipantIdentity(string UserName): IParsable<ParticipantIdentity>
+public record ParticipantIdentity(string UserName)
+    #if NET7_0_OR_GREATER
+    : IParsable<ParticipantIdentity>
+#endif
 {
     public override string ToString() => UserName;
 

@@ -9,7 +9,10 @@ public static class EntityConfiguration
 {
     public static IServiceCollection AddEntityDatabase<TIdentity, TState>(this IServiceCollection services,
         Action<FileSystemEntityDatabaseOptions<TIdentity, TState>> configure)
-        where TState : class where TIdentity : IParsable<TIdentity>
+        where TState : class
+    #if NET7_0_OR_GREATER
+        where TIdentity : IParsable<TIdentity>
+    #endif
     {
         services.Configure(configure);
 
@@ -31,7 +34,10 @@ public static class EntityConfiguration
         this IServiceCollection services,
         Evolver<TIdentity, TState>? evolver = null,
         Action<FileSystemEntityDatabaseOptions<TIdentity, TState>>? configure = null)
-        where TState : class where TIdentity : IParsable<TIdentity>
+        where TState : class
+#if NET7_0_OR_GREATER        
+        where TIdentity : IParsable<TIdentity>
+#endif
         => services.AddEntityDatabase<TIdentity, TState>(opt =>
         {
             configure?.Invoke(opt);
