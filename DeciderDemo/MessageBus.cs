@@ -1,4 +1,6 @@
-﻿using DeciderDemo.Entities;
+﻿using System.Text.Json;
+using DateOnlyTimeOnly.AspNet.Converters;
+using DeciderDemo.Entities;
 using DeciderDemo.Entities.Conference;
 using DeciderDemo.Entities.Conference.Commands;
 using DeciderDemo.Entities.Participant.Commands;
@@ -14,6 +16,9 @@ public class MessageBus
     private readonly ConferenceCommandHandler _conferenceCommandHandler;
     private readonly IHttpContextAccessor _contextAccessor;
 
+    public static readonly JsonSerializerOptions SerializerOptions = new()
+        { Converters = { new DateOnlyJsonConverter(), new TimeOnlyJsonConverter() } };
+
     public MessageBus(GetAllEntities<ConferenceState> getAllConferences, 
         ConferenceCommandHandler conferenceCommandHandler,
         IHttpContextAccessor contextAccessor)
@@ -26,7 +31,7 @@ public class MessageBus
     public async Task Publish(object @event)
     {
         Console.WriteLine($"Event of type {@event.GetType().Name} was published");
-        Console.WriteLine($"\t{System.Text.Json.JsonSerializer.Serialize(@event)}");
+        Console.WriteLine($"\t{JsonSerializer.Serialize(@event, SerializerOptions)}");
 
         var httpContext = _contextAccessor.HttpContext;
         httpContext?.AddStoredEvent(@event);
